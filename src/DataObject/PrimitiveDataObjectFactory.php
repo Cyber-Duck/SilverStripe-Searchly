@@ -1,7 +1,29 @@
 <?php
 
+namespace CyberDuck\Searchly\DataObject;
+
+namespace CyberDuck\Searchly\Index\SearchIndex;
+
+/**
+ * Creates a stdClass representation of a DataObject populated with fields and 
+ * its relations.
+ * 
+ * @category   SilverStripe Searchly
+ * @category   SilverStripe Searchly
+ * @author     Andrew Mc Cormack <andy@cyber-duck.co.uk>
+ * @copyright  Copyright (c) 2018, Andrew Mc Cormack
+ * @license    https://github.com/cyber-duck/silverstripe-searchly/license
+ * @version    1.0.0
+ * @link       https://github.com/cyber-duck/silverstripe-searchly
+ * @since      1.0.0
+ */
 class PrimitiveDataObjectFactory
 {
+    /**
+     * Index instance
+     *
+     * @var SearchIndex
+     */
     protected $index;
 
     /**
@@ -11,6 +33,11 @@ class PrimitiveDataObjectFactory
      */
     protected $records = [];
 
+    /**
+     * Sets the search index instance records
+     *
+     * @param SearchIndex $index
+     */
     public function __construct(SearchIndex $index)
     {
         $this->index = $index;
@@ -25,6 +52,12 @@ class PrimitiveDataObjectFactory
         $this->index->setRecords($this->records);
     }
 
+    /**
+     * Returns the search index spec in JSON format.
+     * Used to populate the searchly API index record data.
+     *
+     * @return string
+     */
     public function getJSON(): string
     {
         $data = [];

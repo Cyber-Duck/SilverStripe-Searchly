@@ -1,8 +1,24 @@
 <?php
 
+namespace CyberDuck\Searchly\DataObject;
+
+use Exception;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DataObjectSchema;
 
+/**
+ * Creates a stdClass representation of a DataObject populated with fields and 
+ * its relations.
+ * 
+ * @category   SilverStripe Searchly
+ * @category   SilverStripe Searchly
+ * @author     Andrew Mc Cormack <andy@cyber-duck.co.uk>
+ * @copyright  Copyright (c) 2018, Andrew Mc Cormack
+ * @license    https://github.com/cyber-duck/silverstripe-searchly/license
+ * @version    1.0.0
+ * @link       https://github.com/cyber-duck/silverstripe-searchly
+ * @since      1.0.0
+ */
 class PrimitiveDataObject
 {
     /**
