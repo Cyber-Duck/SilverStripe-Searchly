@@ -1,0 +1,30 @@
+{
+    "name": "cyber-duck/silverstripe-searchly",
+    "description": "Searchly Elastic Search integration for SilverStripe",
+    "homepage": "https://github.com/cyber-duck/silverstripe-searchly",
+    "keywords": [
+        "silverstripe",
+        "searchly",
+        "elastic search"
+    ],
+    "type": "silverstripe-vendormodule",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Andrew Mc Cormack",
+            "email": "andy@cyber-duck.co.uk"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/cyber-duck/silverstripe-searchly"
+    },
+    "require": {
+        "guzzlehttp/guzzle": "~6"
+    },
+    "autoload": {
+        "classmap": [
+            "src/"
+        ]
+    },
+    "prefer-stable": true
+}
