@@ -5,8 +5,8 @@ namespace CyberDuck\Searchly\DataObject;
 namespace CyberDuck\Searchly\Index\SearchIndex;
 
 /**
- * Creates a stdClass representation of a DataObject populated with fields and 
- * its relations.
+ * Creates a stdClass representation of a DataObject populated with its fields 
+ * and its relations.
  * 
  * @category   SilverStripe Searchly
  * @category   SilverStripe Searchly
