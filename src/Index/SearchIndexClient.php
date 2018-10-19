@@ -1,71 +1,93 @@
 <?php
 
+namespace CyberDuck\Searchly\Index;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
+use SilverStripe\Core\Environment;
 
+/**
+ * Client to interact with the Searchly API
+ * 
+ * @category   SilverStripe Searchly
+ * @category   SilverStripe Searchly
+ * @author     Andrew Mc Cormack <andy@cyber-duck.co.uk>
+ * @copyright  Copyright (c) 2018, Andrew Mc Cormack
+ * @license    https://github.com/cyber-duck/silverstripe-searchly/license
+ * @version    1.0.0
+ * @link       https://github.com/cyber-duck/silverstripe-searchly
+ * @since      1.0.0
+ */
 class SearchIndexClient
 {
+    /**
+     * HTTP client instance
+     *
+     * @var Client
+     */
     protected $client;
 
+    /**
+     * HTTP request method
+     *
+     * @var string
+     */
     protected $method;
 
-    protected $index;
-
+    /**
+     * HTTP request endpoint
+     *
+     * @var string
+     */
+    protected $endpoint;
+    
+    /**
+     * HTTP request body
+     *
+     * @var string
+     */
     protected $body;
 
+    /**
+     * HTTP request headers
+     *
+     * @var array
+     */
     protected $headers = [];
 
+    /**
+     * HTTP response
+     *
+     * @var mixed
+     */
     protected $response;
 
-    public function __construct(Client $client)
-    {
-        $this->client = $client;
-        return $this;
-    }
-
-    public function setMethod(string $method): SearchIndexClient
+    /**
+     * Sets the required properties and client instance
+     *
+     * @param string $method
+     * @param string $endpoint
+     * @param string $body
+     */
+    public function __construct(string $method, string $endpoint, string $body, array $headers = [])
     {
         $this->method = $method;
-        return $this;
-    }
-
-    public function setIndex(string $index): SearchIndexClient
-    {
-        $this->index = $index;
-        return $this;
-    }
-
-    public function setBody(string $body): SearchIndexClient
-    {
+        $this->endpoint = $endpoint;
         $this->body = $body;
-        return $this;
-    }
-
-    public function setHeaders(array $headers): SearchIndexClient
-    {
         $this->headers = $headers;
+
+        $this->client = new Client([
+            'base_uri' => Environment::getEnv('SEARCHLY_BASE_URI')
+        ]);
         return $this;
     }
 
-    public function getResponse()
-    {
-        return $this->response;
-    }
-
-    public function update()
-    {
-        $this->endpoint = sprintf('/%s/_doc/_bulk?pretty', $this->index);
-        $this->sendRequest();
-    }
-
-    public function map()
-    {
-        $this->endpoint = sprintf('/%s/_mapping/_doc', $this->index);
-        $this->sendRequest();
-    }
-
-    private function sendRequest(): bool
+    /**
+     * Sends the API request
+     *
+     * @return SearchIndexClient
+     */
+    public function sendRequest(): SearchIndexClient
     {
         $options = [
             'headers' => $this->headers,
@@ -75,7 +97,16 @@ class SearchIndexClient
             $this->method, $this->endpoint, $options
         );
         $this->response = json_decode((string) $this->response->getBody());
+        return $this;
+    }
 
-        return !empty($response) ? true : false;
+    /**
+     * Returns the API response
+     *
+     * @return mixed
+     */
+    public function getResponse()
+    {
+        return $this->response;
     }
 }
