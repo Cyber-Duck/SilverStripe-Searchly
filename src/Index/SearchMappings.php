@@ -1,5 +1,7 @@
 <?php
 
+namespace CyberDuck\Searchly\Index;
+
 class SearchMappings
 {
     /**
@@ -56,7 +58,7 @@ class SearchMappings
                         }
                     }
                     $data[$name]['type'] = 'nested';
-                    $data[$name]['properties'] = array_merge($merge, $this->map($value, true));
+                    $data[$name]['properties'] = array_merge($merge, $this->map($value));
                 }
             }
         }
