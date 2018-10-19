@@ -1,5 +1,7 @@
 <?php
 
+namespace CyberDuck\Searchly\Task;
+
 use SilverStripe\Dev\BuildTask;
 
 class SearchIndexTask extends BuildTask 
