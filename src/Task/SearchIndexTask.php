@@ -2,6 +2,8 @@
 
 namespace CyberDuck\Searchly\Task;
 
+use Exception;
+use CyberDuck\Searchly\Index\SearchIndex;
 use SilverStripe\Dev\BuildTask;
 
 class SearchIndexTask extends BuildTask 
@@ -11,14 +13,14 @@ class SearchIndexTask extends BuildTask
      *
      * @var boolean
      */
-	protected $enabled = true;
+    protected $enabled = true;
 
     /**
      * Task title
      *
      * @var string
      */
-	protected $title = "Search index task";
+    protected $title = "Search index task";
 
     /**
      * Task description

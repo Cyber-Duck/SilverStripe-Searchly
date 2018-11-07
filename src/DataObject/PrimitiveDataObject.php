@@ -2,7 +2,9 @@
 
 namespace CyberDuck\Searchly\DataObject;
 
+use Closure;
 use Exception;
+use stdClass;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DataObjectSchema;
 

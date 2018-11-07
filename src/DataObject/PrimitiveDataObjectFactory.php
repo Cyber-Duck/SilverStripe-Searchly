@@ -2,7 +2,7 @@
 
 namespace CyberDuck\Searchly\DataObject;
 
-namespace CyberDuck\Searchly\Index\SearchIndex;
+use CyberDuck\Searchly\Index\SearchIndex;
 
 /**
  * Creates a stdClass representation of a DataObject populated with its fields 
