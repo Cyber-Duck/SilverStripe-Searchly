@@ -36,6 +36,29 @@ You can also add a var for your index name, although this is not required.
 SEARCHLY_PAGES_INDEX="pages"
 ```
 
+## Making Models Indexable
+
+Both models and their relations can be indexed. To index fields from a model you can use searchable_* config arrays
+
+
+```php
+private static $searchable_db = [
+    'Title',
+    'Content'
+];
+
+private static $searchable_has_many = [
+    'Quotes'
+];
+
+private static $searchable_many_many = [
+    'Items'
+];
+
+```
+
+In the example above the relations Quotes & Items would need their own searchable_* config. When indexing, these relationships will be traveresed and a nested object created for the index.
+
 ## Creating an Index
 
 The easiest way to create an index is to create a SilverStripe task. In the example below the task indexes all "Page" models.
