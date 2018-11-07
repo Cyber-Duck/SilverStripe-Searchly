@@ -12,10 +12,105 @@ __For SilverStripe 4.*__
 
 ## Installation
 
+Add the following to your composer.json file and run /dev/build?flush=all
+
+```json
+{  
+    "require": {  
+        "cyber-duck/silverstripe-searchly": "1.0.*"
+    }
+}
+```
+
 ## Configuration
 
-Add the searchly base URI .env var
+Add a SEARCHLY_BASE_URI var to your .env file.
 
 ```
 SEARCHLY_BASE_URI="https://site:{api-key}@xyz.searchly.com"
+```
+
+You can also add a var for your index name, although this is not required.
+
+```
+SEARCHLY_PAGES_INDEX="pages"
+```
+
+## Creating an Index
+
+The easiest way to create an index is to create a SilverStripe task. In the example below the task indexes all "Page" models.
+
+```php
+
+use CyberDuck\Searchly\Index\SearchIndex;
+use SilverStripe\Core\Environment;
+use SilverStripe\Dev\BuildTask;
+
+class SearchIndexTask extends BuildTask 
+{
+    protected $enabled = true;
+
+    protected $title = "Searchly Pages index task";
+
+    protected $description = "Indexes all site pages for use in searchly";
+
+    public function run($request)
+    {
+        $index = new SearchIndex(
+            Environment::getEnv('SEARCHLY_PAGES_INDEX'), // the index name, can be hard coded or better to pull from a .env var
+            'pages', // the searchly index _type
+            [\Page::class] // an array of models to index
+        );
+        $index->putData();
+    }
+}
+```
+
+## Performing a Search
+
+To perform a search query create a new SearchQuery instance and inject the search term and index name into the constructor.
+
+```php
+
+use CyberDuck\Searchly\Index\SearchQuery;
+
+$query = new SearchQuery(
+    'Your search term', 
+    Environment::getEnv('SEARCHLY_PAGES_INDEX') // the index name, can be hard coded or better to pull from a .env var
+);
+
+```
+
+To return the full searchly response object you can call getResponse()
+
+```php
+$results = $query->getResponse();
+```
+
+To return an array of matched model IDs you can call getIDs()
+
+```php
+$results = $query->getIDs();
+```
+
+Highlights / matched text can also be returns by calling setHighlight() on the SearchQuery instance and calling getHighlights()
+
+```php
+$query->setHighlight(true);
+
+$results = $query->getHighlights();
+```
+
+## Handling Large Data Sets
+
+If you run into PHP timeouts with indexing large numbers of models, you can try to increase the execution time
+
+
+```php
+
+    public function run($request)
+    {
+        ini_set('max_execution_time', 300);
+
+        $index = new SearchIndex(...
 ```
