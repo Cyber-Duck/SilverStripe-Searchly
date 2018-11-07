@@ -43,7 +43,7 @@ class PrimitiveDataObjectFactory
         $this->index = $index;
         
         array_map(function($namespace) {
-            foreach($namespace::get()->limit(5) as $model) {
+            foreach($namespace::get() as $model) {
                 $schema = new PrimitiveDataObject($model, $this->index->getSchema());
                 $this->records[] = $schema->getData();
             }
