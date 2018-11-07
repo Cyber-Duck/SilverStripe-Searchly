@@ -55,7 +55,7 @@ class SearchIndexTask extends BuildTask
                         $config['classes']
                     );
                     $index->putData();
-                    $index->putMap();
+                    //$index->putMap();
                 }
             }, array_keys($this->indexes), $this->indexes);
         }
