@@ -56,13 +56,6 @@ class SearchIndex
     protected $searchObjects;
 
     /**
-     * Search index mappings instance
-     *
-     * @var SearchMappings
-     */
-    protected $searchMappings;
-
-    /**
      * Array of object records for the index
      *
      * @var array
@@ -85,7 +78,6 @@ class SearchIndex
         $this->schema = Injector::inst()->get(DataObjectSchema::class);
 
         $this->searchObjects = new PrimitiveDataObjectFactory($this);
-        $this->searchMappings = new SearchMappings($this);
     }
 
     /**
@@ -139,16 +131,6 @@ class SearchIndex
     }
 
     /**
-     * Returns the index mappings instance
-     *
-     * @return SearchMappings
-     */
-    public function getSearchMappings(): SearchMappings
-    {
-        return $this->searchMappings;
-    }
-
-    /**
      * Sets the index records
      *
      * @param array $records
@@ -181,21 +163,6 @@ class SearchIndex
             'PUT',
             sprintf('/%s/_doc/_bulk?pretty', $this->name),
             $this->searchObjects->getJSON()
-        );
-        return $client->sendRequest();
-    }
-
-    /**
-     * Updates the index mappings through the API client
-     *
-     * @return SearchIndexClient
-     */
-    public function putMap(): SearchIndexClient
-    {
-        $client = new SearchIndexClient(
-            'PUT',
-            sprintf('/%s/_mapping/_doc', $this->name),
-            $this->searchMappings->getJSON()
         );
         return $client->sendRequest();
     }
