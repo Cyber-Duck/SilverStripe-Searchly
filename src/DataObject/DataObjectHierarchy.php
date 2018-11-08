@@ -60,7 +60,7 @@ class DataObjectHierarchy
      *
      * @return void
      */
-    private function setup(): void
+    private function setup()
     {
         $class = $this->source;
         while($class = get_parent_class($class)) {

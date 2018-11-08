@@ -154,7 +154,7 @@ class PrimitiveDataObject
      * @param Closure $closure
      * @return void
      */
-    private function setRelation(array $relations, array $schema, Closure $closure): void
+    private function setRelation(array $relations, array $schema, Closure $closure)
     {
         array_map(function($relation) use ($schema, $closure) {
             if(!array_key_exists($relation, $schema)) {

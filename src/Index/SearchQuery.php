@@ -229,7 +229,7 @@ class SearchQuery
      *
      * @return void
      */
-    protected function execute(): void
+    protected function execute()
     {
         $this->setConfig('_source', $this->source);
         $this->setConfig('size', $this->size);
