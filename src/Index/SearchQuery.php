@@ -42,7 +42,7 @@ class SearchQuery
      *
      * @var int
      */
-    protected $source = 'ID';
+    protected $source;
 
     /**
      * Query match operator
@@ -231,7 +231,9 @@ class SearchQuery
      */
     protected function execute()
     {
-        $this->setConfig('_source', $this->source);
+        if($this->source) {
+            $this->setConfig('_source', $this->source);
+        }
         $this->setConfig('size', $this->size);
         $this->setConfig('query', [
             'query_string' => [
