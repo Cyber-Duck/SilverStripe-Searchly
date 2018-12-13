@@ -97,6 +97,9 @@ class SearchIndexClient
             $this->method, $this->endpoint, $options
         );
         $this->response = json_decode((string) $this->response->getBody());
+        if($this->response->errors === true) {
+            throw new Exception('There was an error with the index update operation');
+        }
         return $this;
     }
 
