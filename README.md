@@ -88,6 +88,48 @@ class SearchIndexTask extends BuildTask
     }
 }
 ```
+## Creating a Search index with a custom mapping
+
+To create a custom mapping to use terms queries to filter result, change the SearchIndexTask
+
+```php
+
+use CyberDuck\Searchly\Index\SearchIndex;
+use SilverStripe\Core\Environment;
+use SilverStripe\Dev\BuildTask;
+
+class SearchIndexTask extends BuildTask 
+{
+    protected $enabled = true;
+
+    protected $title = "Searchly Pages index task";
+
+    protected $description = "Indexes all site pages for use in searchly";
+
+    public function run($request)
+    {
+        $index = new SearchIndex(
+            Environment::getEnv('SEARCHLY_PAGES_INDEX'), // the index name, can be hard coded or better to pull from a .env var
+            'pages', // the searchly index _type
+            [\Page::class] // an array of models to index
+        );
+        $index->clearIndex();
+        $index->mapIndex([
+            "mappings" => [
+                'pages' => [
+                    "properties" => [
+                        "ClassName" => [
+                            "type" => "string",
+                            "index" => "not_analyzed",
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+        $index->putData();
+    }
+}
+```
 
 ## Performing a Search
 
@@ -98,8 +140,26 @@ To perform a search query create a new SearchQuery instance and inject the searc
 use CyberDuck\Searchly\Index\SearchQuery;
 
 $query = new SearchQuery(
-    'Your search term', 
+    'Your search term',
     Environment::getEnv('SEARCHLY_PAGES_INDEX') // the index name, can be hard coded or better to pull from a .env var
+);
+
+```
+
+## Performing a filtered Search
+The search method supports a third parameter to filter the query results by ids, categories, etc
+
+```php
+
+use CyberDuck\Searchly\Index\SearchQuery;
+
+$query = new SearchQuery(
+    'Your search term',
+    Environment::getEnv('SEARCHLY_PAGES_INDEX') // the index name, can be hard coded or better to pull from a .env var
+    [
+        'Category.ID' =>[1,2]
+        'ClassName' => ['BlogPage']
+    ]
 );
 
 ```
