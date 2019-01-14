@@ -4,8 +4,7 @@ namespace CyberDuck\Searchly\Index;
 
 /**
  * Object representing a search query and its results
- * 
- * @category   SilverStripe Searchly
+ *
  * @category   SilverStripe Searchly
  * @author     Andrew Mc Cormack <andy@cyber-duck.co.uk>
  * @copyright  Copyright (c) 2018, Andrew Mc Cormack
@@ -14,7 +13,7 @@ namespace CyberDuck\Searchly\Index;
  * @link       https://github.com/cyber-duck/silverstripe-searchly
  * @since      1.0.0
  */
-class SearchQuery 
+class SearchQuery
 {
     /**
      * Query text string
@@ -22,6 +21,13 @@ class SearchQuery
      * @var string
      */
     protected $query;
+
+    /**
+     * Additional filters
+     *
+     * @var string
+     */
+    protected $filters;
 
     /**
      * Query index name
@@ -88,14 +94,15 @@ class SearchQuery
 
     /**
      * Sets the search text and index name
-     * 
+     *
      * @param string $query
      * @param string $index
      */
-    public function __construct(string $query, string $index)
+    public function __construct(string $query, string $index, array $filters = [])
     {
         $this->query = $query;
         $this->index = $index;
+        $this->filters = $filters;
     }
 
     /**
@@ -107,6 +114,7 @@ class SearchQuery
     public function setSize(int $size): SearchQuery
     {
         $this->size = $size;
+
         return $this;
     }
 
@@ -119,6 +127,7 @@ class SearchQuery
     public function setOperator(string $operator): SearchQuery
     {
         $this->operator = $operator;
+
         return $this;
     }
 
@@ -131,6 +140,7 @@ class SearchQuery
     public function setWildcard(bool $wildcard): SearchQuery
     {
         $this->wildcard = $wildcard;
+
         return $this;
     }
 
@@ -143,6 +153,7 @@ class SearchQuery
     public function setHighlight(bool $highlight): SearchQuery
     {
         $this->highlight = $highlight;
+
         return $this;
     }
 
@@ -156,6 +167,7 @@ class SearchQuery
     public function setConfig(string $name, $value): SearchQuery
     {
         $this->config[$name] = $value;
+
         return $this;
     }
 
@@ -186,7 +198,10 @@ class SearchQuery
      */
     public function getResponse()
     {
-        if(!$this->executed) $this->execute();
+        if (! $this->executed) {
+            $this->execute();
+        }
+
         return $this->response;
     }
 
@@ -197,17 +212,21 @@ class SearchQuery
      */
     public function getHighlights()
     {
-        if(!$this->executed) $this->execute();
+        if (! $this->executed) {
+            $this->execute();
+        }
+
         $highlights = [];
-        array_map(function($hit) use (&$highlights) {
+        array_map(function ($hit) use (&$highlights) {
             $data = (array) $hit->highlight;
 
-            $highlights[$hit->_id] = implode('' , 
-                array_map(function($key, $value) {
+            $highlights[$hit->_id] = implode('' ,
+                array_map(function ($key, $value) {
                     return implode('', $value);
                 }, array_keys($data), $data)
             );
         }, $this->response->hits->hits);
+
         return $highlights;
     }
 
@@ -218,8 +237,11 @@ class SearchQuery
      */
     public function getIDs()
     {
-        if(!$this->executed) $this->execute();
-        return array_map(function($hit) {
+        if (! $this->executed) {
+            $this->execute();
+        }
+
+        return array_map(function ($hit) {
             return $hit->_id;
         }, $this->response->hits->hits);
     }
@@ -231,18 +253,45 @@ class SearchQuery
      */
     protected function execute()
     {
-        if($this->source) {
+        if ($this->source) {
             $this->setConfig('_source', $this->source);
         }
+
         $this->setConfig('size', $this->size);
-        $this->setConfig('query', [
-            'query_string' => [
-                'query' => $this->getEscapedQuery(),
-                'analyze_wildcard' => true,
-                'default_operator' => $this->operator
-            ]
-        ]);
-        if($this->highlight === true) {
+
+        if (empty($this->filters)) {
+            $this->setConfig('query', [
+                'query_string' => [
+                    'query' => $this->getEscapedQuery(),
+                    'analyze_wildcard' => true,
+                    'default_operator' => $this->operator
+                ]
+            ]);
+        } else {
+            $filters = [];
+            foreach ($this->filters as $key => $value) {
+                $filters[] = ['terms' => [$key => $value]];
+            }
+
+            $this->setConfig('query', [
+                'filtered' => [
+                    'query' => [
+                        'query_string' => [
+                            'query' => $this->getEscapedQuery(),
+                            'analyze_wildcard' => true,
+                            'default_operator' => $this->operator
+                        ]
+                    ],
+                    'filter' => [
+                        "bool" => [
+                            "must" => $filters
+                        ]
+                    ]
+                ]
+            ]);
+        }
+
+        if ($this->highlight === true) {
             $this->setConfig('highlight', [
                 'pre_tags'  => [
                     '<strong>'
@@ -257,6 +306,7 @@ class SearchQuery
                 'fragment_size' => 500
             ]);
         }
+
         $this->client = new SearchIndexClient(
             'GET',
             sprintf('/%s/_search', $this->index),

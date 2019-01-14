@@ -8,8 +8,7 @@ use SilverStripe\ORM\DataObjectSchema;
 
 /**
  * Object representation of a Searchly index
- * 
- * @category   SilverStripe Searchly
+ *
  * @category   SilverStripe Searchly
  * @author     Andrew Mc Cormack <andy@cyber-duck.co.uk>
  * @copyright  Copyright (c) 2018, Andrew Mc Cormack
@@ -139,6 +138,7 @@ class SearchIndex
     public function setRecords(array $records): SearchIndex
     {
         $this->records = $records;
+
         return $this;
     }
 
@@ -164,6 +164,62 @@ class SearchIndex
             sprintf('/%s/_doc/_bulk?pretty', $this->name),
             $this->searchObjects->getJSON()
         );
+
+        return $client->sendRequest();
+    }
+
+    /**
+     * Delete all data from the index
+     *
+     * @return SearchIndexClient
+     */
+    public function clearIndex(): SearchIndexClient
+    {
+        $client = new SearchIndexClient(
+            'DELETE',
+            sprintf('/%s', $this->name),
+            ''
+        );
+
+        try {
+            // Delete would fail if index does not exists
+            return $client->sendRequest();
+        } catch (ClientException $e) {
+            return $client;
+        }
+    }
+
+    /**
+     * Create a mapping for the index
+     *
+     * @param  array $map
+     * @return SearchIndexClient
+     */
+    public function mapIndex(array $map = []): SearchIndexClient
+    {
+        $client = new SearchIndexClient(
+            'PUT',
+            sprintf('/%s', $this->name),
+            json_encode($map)
+        );
+
+        return $client->sendRequest();
+    }
+
+    /**
+     * Delete a record from the index
+     *
+     * @param  int $id
+     * @return SearchIndexClient
+     */
+    public function deleteData(int $id): SearchIndexClient
+    {
+        $client = new SearchIndexClient(
+            'DELETE',
+            sprintf('/%s/_doc/%i', $this->name, $id),
+            json_encode($map)
+        );
+
         return $client->sendRequest();
     }
 }

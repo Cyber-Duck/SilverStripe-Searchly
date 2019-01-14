@@ -8,8 +8,7 @@ use SilverStripe\Core\Environment;
 
 /**
  * Client to interact with the Searchly API
- * 
- * @category   SilverStripe Searchly
+ *
  * @category   SilverStripe Searchly
  * @author     Andrew Mc Cormack <andy@cyber-duck.co.uk>
  * @copyright  Copyright (c) 2018, Andrew Mc Cormack
@@ -40,7 +39,7 @@ class SearchIndexClient
      * @var string
      */
     protected $endpoint;
-    
+
     /**
      * HTTP request body
      *
@@ -79,6 +78,7 @@ class SearchIndexClient
         $this->client = new Client([
             'base_uri' => Environment::getEnv('SEARCHLY_BASE_URI')
         ]);
+
         return $this;
     }
 
@@ -97,9 +97,11 @@ class SearchIndexClient
             $this->method, $this->endpoint, $options
         );
         $this->response = json_decode((string) $this->response->getBody());
-        if($this->response->errors === true) {
+
+        if ($this->response->errors === true) {
             throw new Exception('There was an error with the index update operation');
         }
+
         return $this;
     }
 
