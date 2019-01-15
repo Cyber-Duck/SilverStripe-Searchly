@@ -3,6 +3,7 @@
 namespace CyberDuck\Searchly\Index;
 
 use CyberDuck\Searchly\DataObject\PrimitiveDataObjectFactory;
+use GuzzleHttp\Exception\ClientException;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\ORM\DataObjectSchema;
 
