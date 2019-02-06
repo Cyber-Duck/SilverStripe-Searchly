@@ -74,7 +74,7 @@ class SearchIndexClient
         $this->method = $method;
         $this->endpoint = $endpoint;
         $this->body = $body;
-        $this->headers = $headers;
+        $this->headers = array_merge($headers, ['Content-Type' => 'application/json']);
 
         $this->client = new Client([
             'base_uri' => Environment::getEnv('SEARCHLY_BASE_URI')
