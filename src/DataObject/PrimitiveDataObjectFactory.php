@@ -70,6 +70,6 @@ class PrimitiveDataObjectFactory
                 ]
             ])."\n".json_encode($record);
         }
-        return implode("\n", $data);
+        return implode("\n", $data)."\n";
     }
 }

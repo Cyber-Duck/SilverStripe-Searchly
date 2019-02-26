@@ -74,7 +74,7 @@ class SearchIndexClient
         $this->method = $method;
         $this->endpoint = $endpoint;
         $this->body = $body;
-        $this->headers = $headers;
+        $this->headers = array_merge($headers, ['Content-Type' => 'application/json']);
 
         $this->client = new Client([
             'base_uri' => Environment::getEnv('SEARCHLY_BASE_URI')
@@ -97,7 +97,7 @@ class SearchIndexClient
             $this->method, $this->endpoint, $options
         );
         $this->response = json_decode((string) $this->response->getBody());
-        if($this->response->errors === true) {
+        if (property_exists($this->response, 'errors') && $this->response->errors === true) {
             throw new Exception('There was an error with the index update operation');
         }
         return $this;
