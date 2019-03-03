@@ -2,6 +2,7 @@
 
 namespace CyberDuck\Searchly\Index;
 
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use SilverStripe\Core\Environment;
