@@ -41,14 +41,20 @@ class PrimitiveDataObjectFactory
     public function __construct(SearchIndex $index)
     {
         $this->index = $index;
-        
-        array_map(function($namespace) {
-            foreach($namespace::get() as $model) {
-                $schema = new PrimitiveDataObject($model, $this->index->getSchema());
-                $this->records[] = $schema->getData();
-            }
-        }, $this->index->getClasses());
-        
+
+        array_map(
+            function ($namespace) {
+                foreach ($namespace::get() as $model) {
+                    $schema = new PrimitiveDataObject($model, $this->index->getSchema());
+                    $data = $schema->getData();
+                    if (!$model->hasField('ShowInSearch') || $model->ShowInSearch) {
+                        $this->records[] = $data;
+                    }
+                }
+            },
+            $this->index->getClasses()
+        );
+
         $this->index->setRecords($this->records);
     }
 
@@ -61,14 +67,15 @@ class PrimitiveDataObjectFactory
     public function getJSON(): string
     {
         $data = [];
-        foreach($this->records as $record) {
-            $data[] = json_encode([
+        foreach ($this->records as $record) {
+            $settings = [
                 "index" => [
-                    "_index" => $this->index->getName(), 
-                    "_type"  => $this->index->getType(), 
+                    "_index" => $this->index->getName(),
+                    "_type"  => $this->index->getType(),
                     "_id"    => $record->ID
                 ]
-            ])."\n".json_encode($record);
+            ];
+            $data[] = json_encode($settings)."\n".json_encode($record);
         }
         return implode("\n", $data)."\n";
     }
