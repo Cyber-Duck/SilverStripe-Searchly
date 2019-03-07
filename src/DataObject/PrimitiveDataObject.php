@@ -128,8 +128,12 @@ class PrimitiveDataObject
         } else {
             $this->data->Link = Director::absoluteURL($this->source->Link);
 
-            if (class_exists(Subsite::class) && $this->source->hasField('SubsiteID')) {
-                $this->data->SubsiteID = $this->source->SubsiteID;
+            if (class_exists(Subsite::class)) {
+                if ($this->source->hasField('SubsiteID')) {
+                    $this->data->SubsiteID = $this->source->SubsiteID;
+                } else {
+                    $this->data->SubsiteID = 0;
+                }
             }
         }
 
