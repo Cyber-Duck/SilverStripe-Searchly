@@ -5,13 +5,15 @@ namespace CyberDuck\Searchly\DataObject;
 use Closure;
 use Exception;
 use stdClass;
+use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Control\Director;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DataObjectSchema;
 
 /**
- * Creates a stdClass representation of a DataObject populated with fields and 
+ * Creates a stdClass representation of a DataObject populated with fields and
  * its relations.
- * 
+ *
  * @category   SilverStripe Searchly
  * @category   SilverStripe Searchly
  * @author     Andrew Mc Cormack <andy@cyber-duck.co.uk>
@@ -113,35 +115,54 @@ class PrimitiveDataObject
         // set columns
         $this->data->ID = $this->source->ID;
         $this->data->ClassName = $this->source->ClassName;
-        array_map(function($column) {
-            if($this->source->{$column}) {
-                $this->data->{$column} = $this->source->{$column};
-            }
-        }, (array) $this->source::config()->get('searchable_db'));
+
+        // add links and dates so they can be used without querying the DB
+        if ($this->source instanceof SiteTree) {
+            $this->data->Link = DataObject::get_by_id(SiteTree::class, $this->source->ID)->AbsoluteLink();
+        } else {
+            $this->data->Link = Director::absoluteURL($this->source->Link);
+        }
+        $this->data->LastEdited = substr($this->source->LastEdited, 0, 10);
+        $this->data->Created = substr($this->source->Created, 0, 10);
+
+        array_map(
+            function ($column) {
+                if ($this->source->{$column}) {
+                    $this->data->{$column} = $this->source->{$column};
+                }
+            },
+            (array) $this->source::config()->get('searchable_db')
+        );
 
         // ignore loop backs to current class name
-        array_map(function($model) {
-            $this->setIgnoreClass(get_class($model));
-        }, $this->hierarchy->getHierarchy());
+        array_map(
+            function ($model) {
+                $this->setIgnoreClass(get_class($model));
+            },
+            $this->hierarchy->getHierarchy()
+        );
+
+        $config = $this->source::config();
 
         // set has one
         $this->setRelation(
-            (array) $this->source::config()->get('searchable_has_one'), 
-            (array) $this->source::config()->get('has_one'), 
+            (array) $config->get('searchable_has_one'),
+            (array) $config->get('has_one'),
             $this->getHasOneMethod()
         );
         // set has many
         $this->setRelation(
-            (array) $this->source::config()->get('searchable_has_many'), 
-            (array) $this->source::config()->get('has_many'), 
+            (array) $config->get('searchable_has_many'),
+            (array) $config->get('has_many'),
             $this->getHasManyMethod()
         );
         // set many many
         $this->setRelation(
-            (array) $this->source::config()->get('searchable_many_many'), 
-            (array) $this->source::config()->get('many_many'), 
+            (array) $config->get('searchable_many_many'),
+            (array) $config->get('many_many'),
             $this->getManyManyMethod()
         );
+
         return $this->data;
     }
 
@@ -156,20 +177,23 @@ class PrimitiveDataObject
      */
     private function setRelation(array $relations, array $schema, Closure $closure)
     {
-        array_map(function($relation) use ($schema, $closure) {
-            if(!array_key_exists($relation, $schema)) {
-                throw new Exception(sprintf(
-                    'Search Index error: Cannot find %s relation on %s',
-                    $relation,
-                    get_class($this->source)
-                ));
-            }
-            if(in_array($relation, $this->ignoreRelations) 
-            || in_array($schema[$relation], $this->ignoreClasses)) {
-                return;
-            }
-            $closure($relation);
-        }, $relations);
+        array_map(
+            function ($relation) use ($schema, $closure) {
+                if (!array_key_exists($relation, $schema)) {
+                    throw new Exception(sprintf(
+                        'Search Index error: Cannot find %s relation on %s',
+                        $relation,
+                        get_class($this->source)
+                    ));
+                }
+                if (in_array($relation, $this->ignoreRelations)
+                || in_array($schema[$relation], $this->ignoreClasses)) {
+                    return;
+                }
+                $closure($relation);
+            },
+            $relations
+        );
     }
 
     /**
@@ -179,7 +203,7 @@ class PrimitiveDataObject
      */
     private function getHasOneMethod(): Closure
     {
-        return (function($relation) {
+        return (function ($relation) {
             $schema = new PrimitiveDataObject($this->source->$relation(), $this->schema);
             $this->data->{$relation} = $schema->getData();
         });
@@ -192,12 +216,12 @@ class PrimitiveDataObject
      */
     private function getHasManyMethod(): Closure
     {
-        return (function($relation) {
-            if($this->source->$relation()->Count() == 0) {
+        return (function ($relation) {
+            if ($this->source->$relation()->Count() == 0) {
                 return;
             }
             $this->data->{$relation} = [];
-            foreach($this->source->$relation() as $many) {
+            foreach ($this->source->$relation() as $many) {
                 $schema = new PrimitiveDataObject($many, $this->schema);
                 $inverse = $this->schema->getRemoteJoinField($this->source, $relation);
                 // ignore back references to the current class hierarchy
@@ -214,12 +238,12 @@ class PrimitiveDataObject
      */
     private function getManyManyMethod(): Closure
     {
-        return (function($relation) {
-            if($this->source->$relation()->Count() == 0) {
+        return (function ($relation) {
+            if ($this->source->$relation()->Count() == 0) {
                 return;
             }
             $this->data->{$relation} = [];
-            foreach($this->source->$relation() as $many) {
+            foreach ($this->source->$relation() as $many) {
                 $schema = new PrimitiveDataObject($many, $this->schema);
                 $this->data->{$relation}[] = $schema->getData();
             }
