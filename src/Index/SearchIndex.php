@@ -230,7 +230,7 @@ class SearchIndex
             $client = new SearchIndexClient(
                 'PUT',
                 sprintf('/%s', $index),
-                $payload
+                json_encode($payload)."\n"
             );
             $client->sendRequest();
         }
