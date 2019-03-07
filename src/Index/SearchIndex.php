@@ -195,19 +195,35 @@ class SearchIndex
      *
      * @return void
      */
-    public function createIndex($customMappings = false)
+    public function createIndex($customMappings = [], $customSettings = [])
     {
-        $payload = '';
+        $defaultMapping = [
+            "Link" => ["type" => "text", 'index' => false],
+            "LastEdited" => ["type" => "date"],
+            "Created" => ["type" => "date"],
+            "ClassName" => ["type" => "keyword"],
+        ];
+        $customMappings = array_merge_recursive($customMappings, $defaultMapping);
 
-        if ($customMappings) {
-            $payload = [
-                "mappings" => [
-                    $this->name => [
-                        'properties' => $customMappings,
-                    ],
+        $defaultSettings = [
+            "analysis" => [
+                "analyzer" => [
+                    "default" => [
+                        "type" => "english"
+                    ]
                 ]
-            ];
-        }
+            ]
+        ];
+        $customSettings = array_merge_recursive($customSettings, $defaultSettings);
+
+        $payload = [
+            "settings" => $customSettings,
+            "mappings" => [
+                $this->name => [
+                    'properties' => $customMappings,
+                ],
+            ],
+        ];
 
         $indexes = explode(',', $this->name);
         foreach ($indexes as $index) {
@@ -225,9 +241,9 @@ class SearchIndex
      *
      * @return void
      */
-    public function resetIndexes()
+    public function resetIndexes($customMappings = [], $customSettings = [])
     {
         $this->deleteIndex();
-        $this->createIndex();
+        $this->createIndex($customMappings, $customSettings);
     }
 }
