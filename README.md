@@ -1,5 +1,5 @@
 # SilverStripe-Searchly
-Searchly Elastic Search integration for SilverStripe
+Elastic Search integration for SilverStripe
 
 [![Latest Stable Version](https://poser.pugx.org/cyber-duck/silverstripe-searchly/v/stable)](https://packagist.org/packages/cyber-duck/silverstripe-searchly)
 [![Latest Unstable Version](https://poser.pugx.org/cyber-duck/silverstripe-searchly/v/unstable)](https://packagist.org/packages/cyber-duck/silverstripe-searchly)
@@ -27,10 +27,10 @@ Add the following to your composer.json file and run /dev/build?flush=all
 Add a SEARCHLY_BASE_URI var to your .env file.
 
 ```
-SEARCHLY_BASE_URI="https://site:{api-key}@xyz.searchly.com"
+SEARCHLY_BASE_URI="https://site:{api-key}@xyz.searchly.com" - Any valid ES endpoint (AWS, searchly etc)
 ```
 
-You can also add a var for your index name, although this is not required.
+Add a value for your index name
 
 ```
 SEARCHLY_PAGES_INDEX="pages"
