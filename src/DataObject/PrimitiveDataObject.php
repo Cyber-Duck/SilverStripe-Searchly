@@ -9,6 +9,7 @@ use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Control\Director;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DataObjectSchema;
+use SilverStripe\Subsites\Model\Subsite;
 
 /**
  * Creates a stdClass representation of a DataObject populated with fields and
@@ -131,6 +132,9 @@ class PrimitiveDataObject
                 $this->data->SubsiteID = $this->source->SubsiteID;
             }
         }
+
+        dd($this->data);
+
         $this->data->LastEdited = substr($this->source->LastEdited, 0, 10);
         $this->data->Created = substr($this->source->Created, 0, 10);
 
