@@ -3,6 +3,7 @@
 namespace CyberDuck\Searchly\Index;
 
 use CyberDuck\Searchly\DataObject\PrimitiveDataObjectFactory;
+use GuzzleHttp\Exception\ClientException;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\ORM\DataObjectSchema;
 
@@ -165,5 +166,68 @@ class SearchIndex
             $this->searchObjects->getJSON()
         );
         return $client->sendRequest();
+    }
+
+    /**
+     * Delete the index through the API client
+     *
+     * @return void
+     */
+    public function deleteIndex() : bool
+    {
+        try {
+            $client = new SearchIndexClient(
+                'DELETE',
+                sprintf('/%s', $this->name.''),
+                ''
+            );
+            $client->sendRequest();
+        } catch(ClientException $e) {
+            //index does not exists, return true anyway
+            return true;
+        }
+
+        return $client->getResponse()->acknowledged;
+    }
+
+    /**
+     * Create an index through the API client
+     *
+     * @return void
+     */
+    public function createIndex($customMappings = false)
+    {
+        $payload = '';
+
+        if ($customMappings) {
+            $payload = [
+                "mappings" => [
+                    $this->name => [
+                        'properties' => $customMappings,
+                    ],
+                ]
+            ];
+        }
+
+        $indexes = explode(',', $this->name);
+        foreach ($indexes as $index) {
+            $client = new SearchIndexClient(
+                'PUT',
+                sprintf('/%s', $index),
+                $payload
+            );
+            $client->sendRequest();
+        }
+    }
+
+    /**
+     * Reset an index through the API client
+     *
+     * @return void
+     */
+    public function resetIndexes()
+    {
+        $this->deleteIndex();
+        $this->createIndex();
     }
 }
