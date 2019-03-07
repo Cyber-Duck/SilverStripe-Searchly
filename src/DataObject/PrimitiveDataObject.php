@@ -118,9 +118,18 @@ class PrimitiveDataObject
 
         // add links and dates so they can be used without querying the DB
         if ($this->source instanceof SiteTree) {
-            $this->data->Link = DataObject::get_by_id(SiteTree::class, $this->source->ID)->AbsoluteLink();
+            $page = DataObject::get_by_id(SiteTree::class, $this->source->ID);
+            $this->data->Link = $page->AbsoluteLink();
+
+            if (class_exists(Subsite::class)) {
+                $this->data->SubsiteID = $page->SubsiteID;
+            }
         } else {
             $this->data->Link = Director::absoluteURL($this->source->Link);
+
+            if (class_exists(Subsite::class) && $this->source->hasField('SubsiteID')) {
+                $this->data->SubsiteID = $this->source->SubsiteID;
+            }
         }
         $this->data->LastEdited = substr($this->source->LastEdited, 0, 10);
         $this->data->Created = substr($this->source->Created, 0, 10);

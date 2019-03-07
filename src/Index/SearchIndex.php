@@ -6,10 +6,11 @@ use CyberDuck\Searchly\DataObject\PrimitiveDataObjectFactory;
 use GuzzleHttp\Exception\ClientException;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\ORM\DataObjectSchema;
+use SilverStripe\Subsites\Model\Subsite;
 
 /**
  * Object representation of a Searchly index
- * 
+ *
  * @category   SilverStripe Searchly
  * @category   SilverStripe Searchly
  * @author     Andrew Mc Cormack <andy@cyber-duck.co.uk>
@@ -203,6 +204,11 @@ class SearchIndex
             "Created" => ["type" => "date"],
             "ClassName" => ["type" => "keyword"],
         ];
+
+        if (class_exists(Subsite::class)) {
+            $defaultMapping['SubsiteID'] = ["type" => "keyword"];
+        }
+
         $customMappings = array_merge_recursive($customMappings, $defaultMapping);
 
         $defaultSettings = [
