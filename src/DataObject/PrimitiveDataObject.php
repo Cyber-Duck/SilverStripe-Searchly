@@ -137,8 +137,6 @@ class PrimitiveDataObject
             }
         }
 
-        dd($this->data);
-
         $this->data->LastEdited = substr($this->source->LastEdited, 0, 10);
         $this->data->Created = substr($this->source->Created, 0, 10);
 
