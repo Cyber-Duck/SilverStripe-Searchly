@@ -143,7 +143,7 @@ class PrimitiveDataObject
         array_map(
             function ($column) {
                 if ($this->source->{$column}) {
-                    $this->data->{$column} = strip_html($this->source->{$column});
+                    $this->data->{$column} = strip_tags($this->source->{$column});
                 }
             },
             (array) $this->source::config()->get('searchable_db')
