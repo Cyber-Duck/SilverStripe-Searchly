@@ -39,11 +39,9 @@ class PrimitiveDataObjectFactory
      * @var array
      */
     protected $exclude = [
-        'SilverStripe\CMS\Model\VirtualPage',
         'SilverStripe\UserForms\Model\UserDefinedForm',
         'SilverStripe\CMS\Model\RedirectorPage',
         'SilverStripe\ErrorPage\ErrorPage',
-        'SilverStripe\Subsites\Pages\SubsitesVirtualPage',
     ];
 
     /**

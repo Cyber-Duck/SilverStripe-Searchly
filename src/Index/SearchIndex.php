@@ -271,19 +271,10 @@ class SearchIndex
         $schema = new PrimitiveDataObject($record, $this->getSchema());
         $data = $schema->getData();
 
-        $settings = [
-            "index" => [
-                "_index" => $this->getName(),
-                "_type"  => $this->getType(),
-                "_id"    => $record->ID
-            ]
-        ];
-        $data = json_encode($settings)."\n".json_encode($data)."\n";
-
         $client = new SearchIndexClient(
             'PUT',
-            sprintf('/%s/_doc/_bulk?pretty', $this->name),
-            $data
+            sprintf('/%s/_doc/%s', $this->name, $record->ID),
+            json_encode($data)."\n"
         );
         return $client->sendRequest();
     }
@@ -304,8 +295,8 @@ class SearchIndex
 
         $client = new SearchIndexClient(
             'DELETE',
-            sprintf('/%s/_doc/$S', $this->name, $record->ID),
-            $data
+            sprintf('/%s/_doc/%s', $this->name, $record->ID),
+            ''
         );
         return $client->sendRequest();
     }
