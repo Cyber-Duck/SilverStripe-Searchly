@@ -215,7 +215,7 @@ class PrimitiveDataObject
     private function getHasOneMethod(): Closure
     {
         return (function ($relation) {
-            if ($this->source->getRelationType() == 'has_one') {
+            if ($this->source->getRelationType($relation) == 'has_one') {
                 $schema = new PrimitiveDataObject($this->source->$relation(), $this->schema);
                 $this->data->{$relation} = $schema->getData();
             }
@@ -230,7 +230,7 @@ class PrimitiveDataObject
     private function getHasManyMethod(): Closure
     {
         return (function ($relation) {
-            if ($this->source->getRelationType() == 'has_many') {
+            if ($this->source->getRelationType($relation) == 'has_many') {
                 if ($this->source->$relation()->Count() == 0) {
                     return;
                 }
@@ -254,7 +254,7 @@ class PrimitiveDataObject
     private function getManyManyMethod(): Closure
     {
         return (function ($relation) {
-            if ($this->source->getRelationType() == 'many_many') {
+            if ($this->source->getRelationType($relation) == 'many_many') {
                 if ($this->source->$relation()->Count() == 0) {
                     return;
                 }
