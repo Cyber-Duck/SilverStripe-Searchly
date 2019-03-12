@@ -34,6 +34,19 @@ class PrimitiveDataObjectFactory
     protected $records = [];
 
     /**
+     * System page types to exclude
+     *
+     * @var array
+     */
+    protected $exclude = [
+        'SilverStripe\CMS\Model\VirtualPage',
+        'SilverStripe\UserForms\Model\UserDefinedForm',
+        'SilverStripe\CMS\Model\RedirectorPage',
+        'SilverStripe\ErrorPage\ErrorPage',
+        'SilverStripe\Subsites\Pages\SubsitesVirtualPage',
+    ];
+
+    /**
      * Sets the search index instance records
      *
      * @param SearchIndex $index
@@ -47,7 +60,7 @@ class PrimitiveDataObjectFactory
                 foreach ($namespace::get() as $model) {
                     $schema = new PrimitiveDataObject($model, $this->index->getSchema());
                     $data = $schema->getData();
-                    if (!$model->hasField('ShowInSearch') || $model->ShowInSearch) {
+                    if (!$model->hasField('ShowInSearch') || $model->ShowInSearch && !in_array($model->ClassName, $this->exclude)) {
                         $this->records[] = $data;
                     }
                 }
