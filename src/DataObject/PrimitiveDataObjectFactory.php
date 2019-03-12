@@ -60,7 +60,7 @@ class PrimitiveDataObjectFactory
                 foreach ($namespace::get() as $model) {
                     $schema = new PrimitiveDataObject($model, $this->index->getSchema());
                     $data = $schema->getData();
-                    if (!$model->hasField('ShowInSearch') || $model->ShowInSearch && !in_array($model->ClassName, $this->exclude)) {
+                    if ((!$model->hasField('ShowInSearch') || $model->ShowInSearch) && !in_array($model->ClassName, $this->exclude)) {
                         $this->records[] = $data;
                     }
                 }
