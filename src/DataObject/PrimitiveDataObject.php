@@ -195,11 +195,7 @@ class PrimitiveDataObject
         array_map(
             function ($relation) use ($schema, $closure) {
                 if (!array_key_exists($relation, $schema)) {
-                    throw new Exception(sprintf(
-                        'Search Index error: Cannot find %s relation on %s',
-                        $relation,
-                        get_class($this->source)
-                    ));
+                    return;
                 }
                 if (in_array($relation, $this->ignoreRelations)
                 || in_array($schema[$relation], $this->ignoreClasses)) {

@@ -2,11 +2,12 @@
 
 namespace CyberDuck\Searchly\Index;
 
-use CyberDuck\Searchly\DataObject\PrimitiveDataObjectFactory;
-use GuzzleHttp\Exception\ClientException;
-use SilverStripe\Core\Injector\Injector;
 use SilverStripe\ORM\DataObjectSchema;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Subsites\Model\Subsite;
+use GuzzleHttp\Exception\ClientException;
+use CyberDuck\Searchly\DataObject\PrimitiveDataObject;
+use CyberDuck\Searchly\DataObject\PrimitiveDataObjectFactory;
 
 /**
  * Object representation of a Searchly index
@@ -251,5 +252,61 @@ class SearchIndex
     {
         $this->deleteIndex();
         $this->createIndex($customMappings, $customSettings);
+    }
+
+    public function indexRecord($record)
+    {
+        $valid = false;
+        foreach ($this->classes as $class) {
+            if ($record instanceof $class) {
+                $valid = true;
+                break;
+            }
+        }
+
+        if (!$valid) {
+            return;
+        }
+
+        $schema = new PrimitiveDataObject($record, $this->getSchema());
+        $data = $schema->getData();
+
+        $settings = [
+            "index" => [
+                "_index" => $this->getName(),
+                "_type"  => $this->getType(),
+                "_id"    => $record->ID
+            ]
+        ];
+        $data = json_encode($settings)."\n".json_encode($data)."\n";
+
+        $client = new SearchIndexClient(
+            'PUT',
+            sprintf('/%s/_doc/_bulk?pretty', $this->name),
+            $data
+        );
+        return $client->sendRequest();
+    }
+
+    public function removeRecord($record)
+    {
+        $valid = false;
+        foreach ($this->classes as $class) {
+            if ($record instanceof $class) {
+                $valid = true;
+                break;
+            }
+        }
+
+        if (!$valid) {
+            return;
+        }
+
+        $client = new SearchIndexClient(
+            'DELETE',
+            sprintf('/%s/_doc/$S', $this->name, $record->ID),
+            $data
+        );
+        return $client->sendRequest();
     }
 }
