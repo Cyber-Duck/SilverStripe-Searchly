@@ -66,7 +66,7 @@ class PrimitiveDataObject
      *
      * @var array
      */
-    protected $ignoreClasses = [];
+    protected $UserDefinedForm = [];
 
     /**
      * Sets the required instances
@@ -215,8 +215,10 @@ class PrimitiveDataObject
     private function getHasOneMethod(): Closure
     {
         return (function ($relation) {
-            $schema = new PrimitiveDataObject($this->source->$relation(), $this->schema);
-            $this->data->{$relation} = $schema->getData();
+            if ($this->source->getRelationType() == 'has_one') {
+                $schema = new PrimitiveDataObject($this->source->$relation(), $this->schema);
+                $this->data->{$relation} = $schema->getData();
+            }
         });
     }
 
@@ -228,16 +230,18 @@ class PrimitiveDataObject
     private function getHasManyMethod(): Closure
     {
         return (function ($relation) {
-            if ($this->source->$relation()->Count() == 0) {
-                return;
-            }
-            $this->data->{$relation} = [];
-            foreach ($this->source->$relation() as $many) {
-                $schema = new PrimitiveDataObject($many, $this->schema);
-                $inverse = $this->schema->getRemoteJoinField($this->source, $relation);
-                // ignore back references to the current class hierarchy
-                $schema->setIgnoreRelation(substr($inverse, 0, -2));
-                $this->data->{$relation}[] = $schema->getData();
+            if ($this->source->getRelationType() == 'has_many') {
+                if ($this->source->$relation()->Count() == 0) {
+                    return;
+                }
+                $this->data->{$relation} = [];
+                foreach ($this->source->$relation() as $many) {
+                    $schema = new PrimitiveDataObject($many, $this->schema);
+                    $inverse = $this->schema->getRemoteJoinField($this->source, $relation);
+                    // ignore back references to the current class hierarchy
+                    $schema->setIgnoreRelation(substr($inverse, 0, -2));
+                    $this->data->{$relation}[] = $schema->getData();
+                }
             }
         });
     }
@@ -250,13 +254,15 @@ class PrimitiveDataObject
     private function getManyManyMethod(): Closure
     {
         return (function ($relation) {
-            if ($this->source->$relation()->Count() == 0) {
-                return;
-            }
-            $this->data->{$relation} = [];
-            foreach ($this->source->$relation() as $many) {
-                $schema = new PrimitiveDataObject($many, $this->schema);
-                $this->data->{$relation}[] = $schema->getData();
+            if ($this->source->getRelationType() == 'many_many') {
+                if ($this->source->$relation()->Count() == 0) {
+                    return;
+                }
+                $this->data->{$relation} = [];
+                foreach ($this->source->$relation() as $many) {
+                    $schema = new PrimitiveDataObject($many, $this->schema);
+                    $this->data->{$relation}[] = $schema->getData();
+                }
             }
         });
     }
