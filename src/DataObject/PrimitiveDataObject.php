@@ -3,11 +3,14 @@
 namespace CyberDuck\Searchly\DataObject;
 
 use Closure;
-use Exception;
 use stdClass;
-use SilverStripe\CMS\Model\SiteTree;
-use SilverStripe\Control\Director;
+use Exception;
+use SilverStripe\Assets\File;
+use SilverStripe\Assets\Image;
+use SilverStripe\Assets\Folder;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\Control\Director;
+use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\ORM\DataObjectSchema;
 use SilverStripe\Subsites\Model\Subsite;
 
@@ -125,7 +128,16 @@ class PrimitiveDataObject
             if (class_exists(Subsite::class)) {
                 $this->data->SubsiteID = $page->SubsiteID;
             }
-        } else {
+        } else if ($this->source instanceof File && !($this->source instanceof Image) && !($this->source instanceof Folder)) {
+
+            $file = DataObject::get_by_id(File::class, $this->source->ID);
+            $this->data->Link = $file->AbsoluteLink();
+            $this->data->Title = $file->Title;
+
+            if (class_exists(Subsite::class)) {
+                $this->data->SubsiteID = $file->SubsiteID;
+            }
+        } else{
             $this->data->Link = Director::absoluteURL($this->source->Link);
 
             if (class_exists(Subsite::class)) {

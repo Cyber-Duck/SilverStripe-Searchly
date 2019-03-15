@@ -270,7 +270,6 @@ class SearchIndex
 
         $schema = new PrimitiveDataObject($record, $this->getSchema());
         $data = $schema->getData();
-        unset($data->ID);
 
         $client = new SearchIndexClient(
             'PUT',
