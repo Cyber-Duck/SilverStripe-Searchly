@@ -184,7 +184,7 @@ class SearchIndex
                 ''
             );
             $client->sendRequest();
-        } catch(ClientException $e) {
+        } catch(\Exception $e) {
             //index does not exists, return true anyway
             return true;
         }
@@ -293,11 +293,17 @@ class SearchIndex
             return;
         }
 
-        $client = new SearchIndexClient(
-            'DELETE',
-            sprintf('/%s/%s/%s', $this->name, $this->type, $record->ID),
-            ''
-        );
-        return $client->sendRequest();
+        try {
+            $client = new SearchIndexClient(
+                'DELETE',
+                sprintf('/%s/%s/%s', $this->name, $this->type, $record->ID),
+                ''
+            );
+            return $client->sendRequest();
+        } catch(\Exception $e) {
+            //record does not exists
+            return;
+        }
+
     }
 }
