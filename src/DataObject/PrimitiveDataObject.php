@@ -137,7 +137,7 @@ class PrimitiveDataObject
             if (class_exists(Subsite::class)) {
                 $this->data->SubsiteID = $file->SubsiteID;
             }
-        } else{
+        } else {
             $this->data->Link = Director::absoluteURL($this->source->Link);
 
             if (class_exists(Subsite::class)) {
@@ -148,9 +148,6 @@ class PrimitiveDataObject
                 }
             }
         }
-
-        $this->data->LastEdited = substr($this->source->LastEdited, 0, 10);
-        $this->data->Created = substr($this->source->Created, 0, 10);
 
         array_map(
             function ($column) {
