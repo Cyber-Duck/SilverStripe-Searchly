@@ -152,7 +152,7 @@ class PrimitiveDataObject
         array_map(
             function ($column) {
                 if ($this->source->{$column}) {
-                    $this->data->{$column} = strip_tags($this->source->{$column});
+                    $this->getColumnContent($column);
                 }
             },
             (array) $this->source::config()->get('searchable_db')
@@ -188,6 +188,22 @@ class PrimitiveDataObject
         );
 
         return $this->data;
+    }
+
+    protected function getColumnContent(string $column)
+    {
+        $content = $this->source->{$column};
+
+        if($this->schema->fieldSpec($this->source->ClassName, $column) === 'HTMLText') {
+            $lines = array_filter(explode('>', $content));
+            $lines = array_map(function($line) {
+                return strip_tags($line.'>');
+            }, $lines);
+
+            $this->data->{$column} = implode(' ', array_filter($lines));
+        } else {
+            $this->data->{$column} = strip_tags($content);
+        }
     }
 
     /**
