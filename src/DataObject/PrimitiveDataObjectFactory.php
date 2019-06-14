@@ -34,31 +34,27 @@ class PrimitiveDataObjectFactory
     protected $records = [];
 
     /**
-     * System page types to exclude
-     *
-     * @var array
-     */
-    protected $exclude = [
-        'SilverStripe\UserForms\Model\UserDefinedForm',
-        'SilverStripe\CMS\Model\RedirectorPage',
-        'SilverStripe\ErrorPage\ErrorPage',
-    ];
-
-    /**
      * Sets the search index instance records
      *
      * @param SearchIndex $index
+     * @param array $filters
      */
-    public function __construct(SearchIndex $index)
+    public function __construct(SearchIndex $index, array $filters = [])
     {
         $this->index = $index;
 
         array_map(
-            function ($namespace) {
-                foreach ($namespace::get() as $model) {
+            function ($namespace) use ($filters) {
+                $models = $namespace::get();
+                if(!empty($filters)) {
+                    if(array_key_exists($namespace, $filters)) {
+                        $models = $models->filter($filters[$namespace]);
+                    }
+                }
+                foreach ($models as $model) {
                     $schema = new PrimitiveDataObject($model, $this->index->getSchema());
                     $data = $schema->getData();
-                    if ((!$model->hasField('ShowInSearch') || $model->ShowInSearch) && !in_array($model->ClassName, $this->exclude)) {
+                    if (!$model->hasField('ShowInSearch') || $model->ShowInSearch) {
                         $this->records[] = $data;
                     }
                 }
