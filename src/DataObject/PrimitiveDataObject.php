@@ -182,9 +182,9 @@ class PrimitiveDataObject
      * Returns the Link property
      *
      * @param DataObject $object
-     * @return string
+     * @return string|null
      */
-    protected function getLink(): string
+    protected function getLink()
     {
         if($this->source instanceof SiteTree) {
             return DataObject::get_by_id(SiteTree::class, $this->source->ID)->AbsoluteLink();
