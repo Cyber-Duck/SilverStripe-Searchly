@@ -55,7 +55,7 @@ class DataObjectHierarchy
     }
 
     /**
-     * Builds the hierarch array and then removes ViewableData and DataObject 
+     * Builds the hierarchy array and then removes ViewableData and DataObject 
      * from the array
      *
      * @return void
