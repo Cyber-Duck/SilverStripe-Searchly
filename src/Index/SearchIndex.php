@@ -2,10 +2,9 @@
 
 namespace CyberDuck\Searchly\Index;
 
+use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DataObjectSchema;
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\Subsites\Model\Subsite;
-use GuzzleHttp\Exception\ClientException;
 use CyberDuck\Searchly\DataObject\PrimitiveDataObject;
 use CyberDuck\Searchly\DataObject\PrimitiveDataObjectFactory;
 
@@ -31,6 +30,13 @@ class SearchIndex
     protected $name;
 
     /**
+     * Search index data
+     *
+     * @var string
+     */
+    protected $data;
+
+    /**
      * Search index type
      *
      * @var string
@@ -50,13 +56,6 @@ class SearchIndex
      * @var DataObjectSchema
      */
     protected $schema;
-
-    /**
-     * Factory instance to create primitive data objects
-     *
-     * @var PrimitiveDataObjectFactory
-     */
-    protected $searchObjects;
 
     /**
      * Array of object records for the index
@@ -79,8 +78,6 @@ class SearchIndex
         $this->classes = $classes;
 
         $this->schema = Injector::inst()->get(DataObjectSchema::class);
-
-        $this->searchObjects = new PrimitiveDataObjectFactory($this);
     }
 
     /**
@@ -124,16 +121,6 @@ class SearchIndex
     }
 
     /**
-     * Returns the index objects factory instance
-     *
-     * @return PrimitiveDataObjectFactory
-     */
-    public function getSearchObjects(): PrimitiveDataObjectFactory
-    {
-        return $this->searchObjects;
-    }
-
-    /**
      * Sets the index records
      *
      * @param array $records
@@ -156,18 +143,44 @@ class SearchIndex
     }
 
     /**
-     * Updates the index data through the API client
+     * Creates the search index using the passed mappings and settings
      *
-     * @return SearchIndexClient
+     * @param array $mappings
+     * @param array $settings
+     * @return void
      */
-    public function putData(): SearchIndexClient
+    public function createIndex($mappings = [], $settings = [])
     {
+        $payload = [
+            "settings" => $settings,
+            "mappings" => [
+                $this->name => [
+                    'properties' => $mappings,
+                ],
+            ],
+        ];
+
         $client = new SearchIndexClient(
             'PUT',
-            sprintf('/%s/_doc/_bulk?pretty', $this->name),
-            $this->searchObjects->getJSON()
+            sprintf('/%s', $this->name),
+            json_encode($payload)."\n"
         );
-        return $client->sendRequest();
+        $client->sendRequest();
+    }
+
+    /**
+     * Deletes and recreates the index
+     *
+     * @param array $mappings
+     * @param array $settings
+     * @return SearchIndex
+     */
+    public function resetIndex($mappings = [], $settings = []): SearchIndex
+    {
+        $this->deleteIndex();
+        $this->createIndex($mappings, $settings);
+
+        return $this;
     }
 
     /**
@@ -193,117 +206,83 @@ class SearchIndex
     }
 
     /**
-     * Create an index through the API client
+     * Updates the index data through the API client
+     * 
+     * Second argument is an associative array of filters
+     * ClassName => [
+     *     'filter_column' => 'filter_value'
+     *     ...
+     * ];
      *
-     * @return void
+     * @param array $filters
+     * @return SearchIndexClient
      */
-    public function createIndex($customMappings = [], $customSettings = [])
+    public function index(array $filters = []): SearchIndexClient
     {
-        $defaultMapping = [
-            "Link" => ["type" => "text", 'index' => false],
-            "LastEdited" => ["type" => "date"],
-            "Created" => ["type" => "date"],
-            "ClassName" => ["type" => "keyword"],
-        ];
-
-        if (class_exists(Subsite::class)) {
-            $defaultMapping['SubsiteID'] = ["type" => "keyword"];
-        }
-
-        $customMappings = array_merge_recursive($customMappings, $defaultMapping);
-
-        $defaultSettings = [
-            "analysis" => [
-                "analyzer" => [
-                    "default" => [
-                        "type" => "english"
-                    ]
-                ]
-            ]
-        ];
-        $customSettings = array_merge_recursive($customSettings, $defaultSettings);
-
-        $payload = [
-            "settings" => $customSettings,
-            "mappings" => [
-                $this->name => [
-                    'properties' => $customMappings,
-                ],
-            ],
-        ];
-
-        $indexes = explode(',', $this->name);
-        foreach ($indexes as $index) {
-            $client = new SearchIndexClient(
-                'PUT',
-                sprintf('/%s', $index),
-                json_encode($payload)."\n"
-            );
-            $client->sendRequest();
-        }
-    }
-
-    /**
-     * Reset an index through the API client
-     *
-     * @return void
-     */
-    public function resetIndexes($customMappings = [], $customSettings = [])
-    {
-        $this->deleteIndex();
-        $this->createIndex($customMappings, $customSettings);
-    }
-
-    public function indexRecord($record)
-    {
-        $valid = false;
-        foreach ($this->classes as $class) {
-            if ($record instanceof $class) {
-                $valid = true;
-                break;
-            }
-        }
-
-        if (!$valid) {
-            return;
-        }
-
-        $schema = new PrimitiveDataObject($record, $this->getSchema());
-        $data = $schema->getData();
-
         $client = new SearchIndexClient(
             'PUT',
-            sprintf('/%s/%s/%s', $this->name, $this->type, $record->ID),
-            json_encode($data)."\n"
+            sprintf('/%s/_doc/_bulk?pretty', $this->name),
+            (new PrimitiveDataObjectFactory($this, $filters))->getJSON()
         );
         return $client->sendRequest();
     }
 
-    public function removeRecord($record)
+    /**
+     * Adds a DataObject to the index
+     *
+     * @param DataObject $record
+     * @return void
+     */
+    public function indexRecord(DataObject $record)
     {
-        $valid = false;
-        foreach ($this->classes as $class) {
-            if ($record instanceof $class) {
-                $valid = true;
-                break;
-            }
-        }
-
-        if (!$valid) {
-            return;
-        }
-
-        try {
+        if ($this->isIndexableClass($record)) {
+            $transformer = new PrimitiveDataObject($record, $this->getSchema());
+            $data = $transformer->getData();
+    
             $client = new SearchIndexClient(
-                'DELETE',
+                'PUT',
                 sprintf('/%s/%s/%s', $this->name, $this->type, $record->ID),
-                ''
+                json_encode($data)."\n"
             );
             return $client->sendRequest();
-        } catch(\Exception $e) {
-            //record does not exists
-            return;
         }
+    }
 
+    /**
+     * Removes a DataObject from the index
+     *
+     * @param DataObject $record
+     * @return void
+     */
+    public function removeRecord(DataObject $record)
+    {
+        if($this->isIndexableClass($record)) {
+            try {
+                $client = new SearchIndexClient(
+                    'DELETE',
+                    sprintf('/%s/%s/%s', $this->name, $this->type, $record->ID),
+                    ''
+                );
+                return $client->sendRequest();
+            } catch(\Exception $e) {
+                return;
+            }
+        }
+    }
+
+    /**
+     * Checks if a passed DataObject can be added to the index
+     *
+     * @param DataObject $record
+     * @return boolean
+     */
+    protected function isIndexableClass(DataObject $record): bool
+    {
+        foreach ($this->classes as $class) {
+            if ($record instanceof $class) {
+                return true;
+            }
+        }
+        return false;
     }
 }
