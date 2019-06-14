@@ -4,10 +4,7 @@ namespace CyberDuck\Searchly\DataObject;
 
 use Closure;
 use stdClass;
-use Exception;
 use SilverStripe\Assets\File;
-use SilverStripe\Assets\Image;
-use SilverStripe\Assets\Folder;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Control\Director;
 use SilverStripe\CMS\Model\SiteTree;
@@ -116,43 +113,22 @@ class PrimitiveDataObject
      */
     public function getData(): stdClass
     {
-        // set columns
+        // set required columns
         $this->data->ID = $this->source->ID;
         $this->data->ClassName = $this->source->ClassName;
 
-        // add links and dates so they can be used without querying the DB
-        if ($this->source instanceof SiteTree) {
-            $page = DataObject::get_by_id(SiteTree::class, $this->source->ID);
-            $this->data->Link = $page->AbsoluteLink();
-
-            if (class_exists(Subsite::class)) {
-                $this->data->SubsiteID = $page->SubsiteID;
-            }
-        } else if ($this->source instanceof File && !($this->source instanceof Image) && !($this->source instanceof Folder)) {
-
-            $file = DataObject::get_by_id(File::class, $this->source->ID);
-            $this->data->Link = $file->AbsoluteLink();
-            $this->data->Title = $file->Title;
-
-            if (class_exists(Subsite::class)) {
-                $this->data->SubsiteID = $file->SubsiteID;
-            }
-        } else {
-            $this->data->Link = Director::absoluteURL($this->source->Link);
-
-            if (class_exists(Subsite::class)) {
-                if ($this->source->hasField('SubsiteID')) {
-                    $this->data->SubsiteID = $this->source->SubsiteID;
-                } else {
-                    $this->data->SubsiteID = 0;
-                }
-            }
+        if($this->hasLink()) {
+            $this->data->Link = $this->getLink();
+        }
+        if (class_exists(Subsite::class)) {
+            $this->data->SubsiteID = $this->getSubsiteID();
         }
 
+        // set columns
         array_map(
             function ($column) {
                 if ($this->source->{$column}) {
-                    $this->getColumnContent($column);
+                    $this->setColumnContent($column);
                 }
             },
             (array) $this->source::config()->get('searchable_db')
@@ -190,7 +166,58 @@ class PrimitiveDataObject
         return $this->data;
     }
 
-    protected function getColumnContent(string $column)
+    /**
+     * Checks if a link exists on the source DataObject
+     *
+     * @return boolean
+     */
+    protected function hasLink(): bool
+    {
+        return property_exists($this->source, 'Link') 
+        || method_exists($this->source, 'Link') 
+        || method_exists($this->source, 'getLink');
+    }
+
+    /**
+     * Returns the Link property
+     *
+     * @param DataObject $object
+     * @return string
+     */
+    protected function getLink(): string
+    {
+        if($this->source instanceof SiteTree) {
+            return DataObject::get_by_id(SiteTree::class, $this->source->ID)->AbsoluteLink();
+        }
+        if ($this->source instanceof File) {
+            return DataObject::get_by_id(File::class, $this->source->ID)->AbsoluteLink();
+        }
+        if(method_exists('Link', $this->source) ) {
+            return Director::absoluteURL($this->source->Link());
+        }
+        if(method_exists('getLink', $this->source) ) {
+            return Director::absoluteURL($this->source->getLink());
+        }
+        return Director::absoluteURL($this->source->Link);
+    }
+
+    /**
+     * Returns the record subsite ID
+     *
+     * @return int
+     */
+    protected function getSubsiteID(): int
+    {
+        return $this->source->hasField('SubsiteID') ? (int) $this->source->SubsiteID : 0;
+    }
+
+    /**
+     * Normalises HTML field content
+     *
+     * @param string $column
+     * @return void
+     */
+    protected function setColumnContent(string $column)
     {
         $content = $this->source->{$column};
 
