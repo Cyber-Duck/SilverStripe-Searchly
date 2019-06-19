@@ -12,6 +12,19 @@ Author: [Andrew Mc Cormack](https://github.com/Andrew-Mc-Cormack)
 __For SilverStripe 4.*__
 
 * [Installation](#installation)
+* [Setting Your Elastic Search Endpoint](#setting-your-elastic-search-endpoint)
+* [Setting DataObject Indexable Fields and Relations](#setting-dataobject-indexable-fields-and-relations)
+* [Performing Actions on a Search Index](#performing-actions-on-a-search-index)
+    * [createIndex()](#createindexmappings---settings--)
+    * [deleteIndex()](#deleteindex)
+    * [resetIndex()](#resetindexmappings---settings--)
+    * [index()](#indexarray-filters--)
+    * [indexRecord()](#indexrecorddataobject-record)
+    * [removeRecord()](#removerecorddataobject-record)
+    * [Creating an Index Task](#creating-an-index-task)
+* [Performing a Search](#performing-a-search)
+    * [Configuring Your Search Query](#configuring-your-search-query)
+    * [Getting Search Results](#getting-search-results)
 
 ## Installation
 
