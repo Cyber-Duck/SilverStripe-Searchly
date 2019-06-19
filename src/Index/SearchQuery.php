@@ -191,6 +191,30 @@ class SearchQuery
     }
 
     /**
+     * Returns the matched IDs
+     *
+     * @return void
+     */
+    public function getIDs()
+    {
+        if(!$this->executed) $this->execute();
+        return array_map(function($hit) {
+            return $hit->_id;
+        }, $this->response->hits->hits);
+    }
+
+    /**
+     * Returns all matched objects from the index
+     *
+     * @return array
+     */
+    public function getHits(): array
+    {
+        if (!$this->executed) $this->execute();
+        return $this->response->hits->hits;
+    }
+
+    /**
      * Returns an array of query highlights in $id => $highlight format
      *
      * @return void
@@ -209,19 +233,6 @@ class SearchQuery
             );
         }, $this->response->hits->hits);
         return $highlights;
-    }
-
-    /**
-     * Returns the matched IDs
-     *
-     * @return void
-     */
-    public function getIDs()
-    {
-        if(!$this->executed) $this->execute();
-        return array_map(function($hit) {
-            return $hit->_id;
-        }, $this->response->hits->hits);
     }
 
     /**
