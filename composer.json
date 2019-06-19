@@ -1,11 +1,14 @@
 {
     "name": "cyber-duck/silverstripe-searchly",
-    "description": "Searchly Elastic Search integration for SilverStripe",
+    "description": "Elastic Search integration for SilverStripe",
     "homepage": "https://github.com/cyber-duck/silverstripe-searchly",
     "keywords": [
+        "silverstripe-4",
         "silverstripe",
+        "elasticsearch",
+        "elastic search",
         "searchly",
-        "elastic search"
+        "php"
     ],
     "type": "silverstripe-vendormodule",
     "license": "MIT",
