@@ -238,7 +238,7 @@ class SearchQuery
         $this->setConfig('query', [
             'query_string' => [
                 'query' => $this->getEscapedQuery(),
-                'analyze_wildcard' => true,
+                'analyze_wildcard' => $this->wildcard,
                 'default_operator' => $this->operator
             ]
         ]);
