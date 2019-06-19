@@ -5,39 +5,40 @@ namespace CyberDuck\Searchly\DataObject;
 use CyberDuck\Searchly\Index\SearchIndex;
 
 /**
- * Creates a stdClass representation of a DataObject populated with its fields 
+ * Creates a stdClass representation of a DataObject populated with its fields
  * and its relations.
- * 
- * @category   SilverStripe Searchly
- * @category   SilverStripe Searchly
+ *
+ * @category   SilverStripe Elastic Search
+ *
  * @author     Andrew Mc Cormack <andy@cyber-duck.co.uk>
  * @copyright  Copyright (c) 2018, Andrew Mc Cormack
  * @license    https://github.com/cyber-duck/silverstripe-searchly/license
- * @version    1.0.0
- * @link       https://github.com/cyber-duck/silverstripe-searchly
- * @since      1.0.0
+ *
+ * @version    4.1.0
+ *
+ * @see       https://github.com/cyber-duck/silverstripe-searchly
  */
 class PrimitiveDataObjectFactory
 {
     /**
-     * Index instance
+     * Index instance.
      *
      * @var SearchIndex
      */
     protected $index;
 
     /**
-     * Schema objects array
+     * Schema objects array.
      *
      * @var array
      */
     protected $records = [];
 
     /**
-     * Sets the search index instance records
+     * Sets the search index instance records.
      *
      * @param SearchIndex $index
-     * @param array $filters
+     * @param array       $filters
      */
     public function __construct(SearchIndex $index, array $filters = [])
     {
@@ -46,8 +47,8 @@ class PrimitiveDataObjectFactory
         array_map(
             function ($namespace) use ($filters) {
                 $models = $namespace::get();
-                if(!empty($filters)) {
-                    if(array_key_exists($namespace, $filters)) {
+                if (!empty($filters)) {
+                    if (array_key_exists($namespace, $filters)) {
                         $models = $models->filter($filters[$namespace]);
                     }
                 }
@@ -76,14 +77,15 @@ class PrimitiveDataObjectFactory
         $data = [];
         foreach ($this->records as $record) {
             $settings = [
-                "index" => [
-                    "_index" => $this->index->getName(),
-                    "_type"  => $this->index->getType(),
-                    "_id"    => $record->ID
-                ]
+                'index' => [
+                    '_index' => $this->index->getName(),
+                    '_type' => $this->index->getType(),
+                    '_id' => $record->ID,
+                ],
             ];
             $data[] = json_encode($settings)."\n".json_encode($record);
         }
+
         return implode("\n", $data)."\n";
     }
 }

@@ -4,67 +4,67 @@ namespace CyberDuck\Searchly\Index;
 
 use Exception;
 use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Request;
 use SilverStripe\Core\Environment;
 
 /**
- * Client to interact with the Searchly API
- * 
- * @category   SilverStripe Searchly
- * @category   SilverStripe Searchly
+ * Client to interact with the Elastic Search API.
+ *
+ * @category   SilverStripe Elastic Search
+ *
  * @author     Andrew Mc Cormack <andy@cyber-duck.co.uk>
  * @copyright  Copyright (c) 2018, Andrew Mc Cormack
  * @license    https://github.com/cyber-duck/silverstripe-searchly/license
- * @version    1.0.0
- * @link       https://github.com/cyber-duck/silverstripe-searchly
- * @since      1.0.0
+ *
+ * @version    4.1.0
+ *
+ * @see       https://github.com/cyber-duck/silverstripe-searchly
  */
 class SearchIndexClient
 {
     /**
-     * HTTP client instance
+     * HTTP client instance.
      *
      * @var Client
      */
     protected $client;
 
     /**
-     * HTTP request method
+     * HTTP request method.
      *
      * @var string
      */
     protected $method;
 
     /**
-     * HTTP request endpoint
+     * HTTP request endpoint.
      *
      * @var string
      */
     protected $endpoint;
-    
+
     /**
-     * HTTP request body
+     * HTTP request body.
      *
      * @var string
      */
     protected $body;
 
     /**
-     * HTTP request headers
+     * HTTP request headers.
      *
      * @var array
      */
     protected $headers = [];
 
     /**
-     * HTTP response
+     * HTTP response.
      *
      * @var mixed
      */
     protected $response;
 
     /**
-     * Sets the required properties and client instance
+     * Sets the required properties and client instance.
      *
      * @param string $method
      * @param string $endpoint
@@ -78,13 +78,14 @@ class SearchIndexClient
         $this->headers = array_merge($headers, ['Content-Type' => 'application/json']);
 
         $this->client = new Client([
-            'base_uri' => Environment::getEnv('SEARCHLY_BASE_URI')
+            'base_uri' => Environment::getEnv('SEARCHLY_BASE_URI'),
         ]);
+
         return $this;
     }
 
     /**
-     * Sends the API request
+     * Sends the API request.
      *
      * @return SearchIndexClient
      */
@@ -92,20 +93,21 @@ class SearchIndexClient
     {
         $options = [
             'headers' => $this->headers,
-            'body'    => $this->body
+            'body' => $this->body,
         ];
         $this->response = $this->client->request(
             $this->method, $this->endpoint, $options
         );
         $this->response = json_decode((string) $this->response->getBody());
-        if (property_exists($this->response, 'errors') && $this->response->errors === true) {
+        if (property_exists($this->response, 'errors') && true === $this->response->errors) {
             throw new Exception('There was an error with the index update operation');
         }
+
         return $this;
     }
 
     /**
-     * Returns the API response
+     * Returns the API response.
      *
      * @return mixed
      */

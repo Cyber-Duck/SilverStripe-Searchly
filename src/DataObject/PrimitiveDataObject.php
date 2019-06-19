@@ -15,63 +15,64 @@ use SilverStripe\Subsites\Model\Subsite;
  * Creates a stdClass representation of a DataObject populated with fields and
  * its relations.
  *
- * @category   SilverStripe Searchly
- * @category   SilverStripe Searchly
+ * @category   SilverStripe Elastic Search
+ *
  * @author     Andrew Mc Cormack <andy@cyber-duck.co.uk>
  * @copyright  Copyright (c) 2018, Andrew Mc Cormack
  * @license    https://github.com/cyber-duck/silverstripe-searchly/license
- * @version    1.0.0
- * @link       https://github.com/cyber-duck/silverstripe-searchly
- * @since      1.0.0
+ *
+ * @version    4.1.0
+ *
+ * @see       https://github.com/cyber-duck/silverstripe-searchly
  */
 class PrimitiveDataObject
 {
     /**
-     * Source model instance
+     * Source model instance.
      *
      * @var DataObject
      */
     protected $source;
 
     /**
-     * DataObject schema instance
+     * DataObject schema instance.
      *
      * @var DataObjectSchema
      */
     protected $schema;
 
     /**
-     * DataObjectHierarchy instance
+     * DataObjectHierarchy instance.
      *
      * @var DataObjectHierarchy
      */
     protected $hierarchy;
 
     /**
-     * Constructed model schema data instance
+     * Constructed model schema data instance.
      *
      * @var stdClass
      */
     protected $data;
 
     /**
-     * Ignores these relations when building the search schema
+     * Ignores these relations when building the search schema.
      *
      * @var array
      */
     protected $ignoreRelations = [];
 
     /**
-     * Ignores these classes when building the search schema
+     * Ignores these classes when building the search schema.
      *
      * @var array
      */
     protected $UserDefinedForm = [];
 
     /**
-     * Sets the required instances
+     * Sets the required instances.
      *
-     * @param DataObject $source
+     * @param DataObject       $source
      * @param DataObjectSchema $schema
      */
     public function __construct(DataObject $source, DataObjectSchema $schema)
@@ -83,31 +84,35 @@ class PrimitiveDataObject
     }
 
     /**
-     * Sets a relation name to ignore when building the schema
+     * Sets a relation name to ignore when building the schema.
      *
      * @param string $relation
+     *
      * @return PrimitiveDataObject
      */
     public function setIgnoreRelation(string $relation): PrimitiveDataObject
     {
         $this->ignoreRelations[] = $relation;
+
         return $this;
     }
 
     /**
-     * Sets a class name to ignore when building the schema
+     * Sets a class name to ignore when building the schema.
      *
      * @param string $class
+     *
      * @return PrimitiveDataObject
      */
     public function setIgnoreClass(string $class): PrimitiveDataObject
     {
         $this->ignoreClasses[] = $class;
+
         return $this;
     }
 
     /**
-     * Returns the constructed data instance
+     * Returns the constructed data instance.
      *
      * @return stdClass
      */
@@ -117,7 +122,7 @@ class PrimitiveDataObject
         $this->data->ID = $this->source->ID;
         $this->data->ClassName = $this->source->ClassName;
 
-        if($this->hasLink()) {
+        if ($this->hasLink()) {
             $this->data->Link = $this->getLink();
         }
         if (class_exists(Subsite::class)) {
@@ -167,42 +172,44 @@ class PrimitiveDataObject
     }
 
     /**
-     * Checks if a link exists on the source DataObject
+     * Checks if a link exists on the source DataObject.
      *
      * @return boolean
      */
     protected function hasLink(): bool
     {
-        return property_exists($this->source, 'Link') 
-        || method_exists($this->source, 'Link') 
+        return property_exists($this->source, 'Link')
+        || method_exists($this->source, 'Link')
         || method_exists($this->source, 'getLink');
     }
 
     /**
-     * Returns the Link property
+     * Returns the Link property.
      *
      * @param DataObject $object
+     *
      * @return string|null
      */
     protected function getLink()
     {
-        if($this->source instanceof SiteTree) {
+        if ($this->source instanceof SiteTree) {
             return DataObject::get_by_id(SiteTree::class, $this->source->ID)->AbsoluteLink();
         }
         if ($this->source instanceof File) {
             return DataObject::get_by_id(File::class, $this->source->ID)->AbsoluteLink();
         }
-        if(method_exists('Link', $this->source) ) {
+        if (method_exists('Link', $this->source)) {
             return Director::absoluteURL($this->source->Link());
         }
-        if(method_exists('getLink', $this->source) ) {
+        if (method_exists('getLink', $this->source)) {
             return Director::absoluteURL($this->source->getLink());
         }
+
         return Director::absoluteURL($this->source->Link);
     }
 
     /**
-     * Returns the record subsite ID
+     * Returns the record subsite ID.
      *
      * @return int
      */
@@ -212,18 +219,17 @@ class PrimitiveDataObject
     }
 
     /**
-     * Normalises HTML field content
+     * Normalises HTML field content.
      *
      * @param string $column
-     * @return void
      */
     protected function setColumnContent(string $column)
     {
         $content = $this->source->{$column};
 
-        if($this->schema->fieldSpec($this->source->ClassName, $column) === 'HTMLText') {
+        if ('HTMLText' === $this->schema->fieldSpec($this->source->ClassName, $column)) {
             $lines = array_filter(explode('>', $content));
-            $lines = array_map(function($line) {
+            $lines = array_map(function ($line) {
                 return strip_tags($line.'>');
             }, $lines);
 
@@ -235,12 +241,11 @@ class PrimitiveDataObject
 
     /**
      * Sets a has one, has many, or many many relation by validating the
-     * passed values and running the relation specific closure
+     * passed values and running the relation specific closure.
      *
-     * @param array $relations
-     * @param array $schema
+     * @param array   $relations
+     * @param array   $schema
      * @param Closure $closure
-     * @return void
      */
     private function setRelation(array $relations, array $schema, Closure $closure)
     {
@@ -260,30 +265,30 @@ class PrimitiveDataObject
     }
 
     /**
-     * Returns the has one relation closure to execute and build the relation
+     * Returns the has one relation closure to execute and build the relation.
      *
      * @return Closure
      */
     private function getHasOneMethod(): Closure
     {
-        return (function ($relation) {
-            if ($this->source->getRelationType($relation) == 'has_one') {
+        return function ($relation) {
+            if ('has_one' == $this->source->getRelationType($relation)) {
                 $schema = new PrimitiveDataObject($this->source->$relation(), $this->schema);
                 $this->data->{$relation} = $schema->getData();
             }
-        });
+        };
     }
 
     /**
-     * Returns the has many relation closure to execute and build the relation
+     * Returns the has many relation closure to execute and build the relation.
      *
      * @return Closure
      */
     private function getHasManyMethod(): Closure
     {
-        return (function ($relation) {
-            if ($this->source->getRelationType($relation) == 'has_many') {
-                if ($this->source->$relation()->Count() == 0) {
+        return function ($relation) {
+            if ('has_many' == $this->source->getRelationType($relation)) {
+                if (0 == $this->source->$relation()->Count()) {
                     return;
                 }
                 $this->data->{$relation} = [];
@@ -295,19 +300,19 @@ class PrimitiveDataObject
                     $this->data->{$relation}[] = $schema->getData();
                 }
             }
-        });
+        };
     }
 
     /**
-     * Returns the many many relation closure to execute and build the relation
+     * Returns the many many relation closure to execute and build the relation.
      *
      * @return Closure
      */
     private function getManyManyMethod(): Closure
     {
-        return (function ($relation) {
-            if ($this->source->getRelationType($relation) == 'many_many') {
-                if ($this->source->$relation()->Count() == 0) {
+        return function ($relation) {
+            if ('many_many' == $this->source->getRelationType($relation)) {
+                if (0 == $this->source->$relation()->Count()) {
                     return;
                 }
                 $this->data->{$relation} = [];
@@ -316,6 +321,6 @@ class PrimitiveDataObject
                     $this->data->{$relation}[] = $schema->getData();
                 }
             }
-        });
+        };
     }
 }

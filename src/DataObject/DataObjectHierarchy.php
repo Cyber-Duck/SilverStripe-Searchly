@@ -5,35 +5,36 @@ namespace CyberDuck\Searchly\DataObject;
 use SilverStripe\ORM\DataObject;
 
 /**
- * Builds DataObject hierarchy spec
- * 
- * @category   SilverStripe Searchly
- * @category   SilverStripe Searchly
+ * Builds DataObject hierarchy spec.
+ *
+ * @category   SilverStripe Elastic Search
+ *
  * @author     Andrew Mc Cormack <andy@cyber-duck.co.uk>
  * @copyright  Copyright (c) 2018, Andrew Mc Cormack
  * @license    https://github.com/cyber-duck/silverstripe-searchly/license
- * @version    1.0.0
- * @link       https://github.com/cyber-duck/silverstripe-searchly
- * @since      1.0.0
+ *
+ * @version    4.1.0
+ *
+ * @see       https://github.com/cyber-duck/silverstripe-searchly
  */
 class DataObjectHierarchy
 {
     /**
-     * Source model instance
+     * Source model instance.
      *
      * @var DataObject
      */
     protected $source;
 
     /**
-     * Array of hierarchy models
+     * Array of hierarchy models.
      *
      * @var array
      */
     protected $hierarchy = [];
 
     /**
-     * Sets up the hierarchy array
+     * Sets up the hierarchy array.
      *
      * @param DataObject $source
      */
@@ -45,7 +46,7 @@ class DataObjectHierarchy
     }
 
     /**
-     * Returns the hierarchy model array
+     * Returns the hierarchy model array.
      *
      * @return array
      */
@@ -55,15 +56,13 @@ class DataObjectHierarchy
     }
 
     /**
-     * Builds the hierarchy array and then removes ViewableData and DataObject 
-     * from the array
-     *
-     * @return void
+     * Builds the hierarchy array and then removes ViewableData and DataObject
+     * from the array.
      */
     private function setup()
     {
         $class = $this->source;
-        while($class = get_parent_class($class)) {
+        while ($class = get_parent_class($class)) {
             $this->hierarchy[] = $class::create();
         }
         array_pop($this->hierarchy);

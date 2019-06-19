@@ -9,67 +9,68 @@ use CyberDuck\Searchly\DataObject\PrimitiveDataObject;
 use CyberDuck\Searchly\DataObject\PrimitiveDataObjectFactory;
 
 /**
- * Object representation of a Searchly index
+ * Object representation of a Elastic Search index.
  *
  * @category   SilverStripe Searchly
- * @category   SilverStripe Searchly
+ *
  * @author     Andrew Mc Cormack <andy@cyber-duck.co.uk>
  * @copyright  Copyright (c) 2018, Andrew Mc Cormack
  * @license    https://github.com/cyber-duck/silverstripe-searchly/license
- * @version    1.0.0
- * @link       https://github.com/cyber-duck/silverstripe-searchly
- * @since      1.0.0
+ *
+ * @version    4.1.0
+ *
+ * @see       https://github.com/cyber-duck/silverstripe-searchly
  */
 class SearchIndex
 {
     /**
-     * Search index name
+     * Search index name.
      *
      * @var string
      */
     protected $name;
 
     /**
-     * Search index data
+     * Search index data.
      *
      * @var string
      */
     protected $data;
 
     /**
-     * Search index type
+     * Search index type.
      *
      * @var string
      */
     protected $type;
 
     /**
-     * Array of DataObject classes for this index
+     * Array of DataObject classes for this index.
      *
      * @var array
      */
     protected $classes = [];
 
     /**
-     * DataObjectSchema instance
+     * DataObjectSchema instance.
      *
      * @var DataObjectSchema
      */
     protected $schema;
 
     /**
-     * Array of object records for the index
+     * Array of object records for the index.
      *
      * @var array
      */
     protected $records = [];
 
     /**
-     * Sets the required properties and classes
+     * Sets the required properties and classes.
      *
      * @param string $name
      * @param string $type
-     * @param array $classes
+     * @param array  $classes
      */
     public function __construct(string $name, string $type, array $classes)
     {
@@ -81,7 +82,7 @@ class SearchIndex
     }
 
     /**
-     * Returns the search index name
+     * Returns the search index name.
      *
      * @return string
      */
@@ -91,7 +92,7 @@ class SearchIndex
     }
 
     /**
-     * Returns the search index type
+     * Returns the search index type.
      *
      * @return string
      */
@@ -101,7 +102,7 @@ class SearchIndex
     }
 
     /**
-     * Returns the search index classes
+     * Returns the search index classes.
      *
      * @return array
      */
@@ -111,7 +112,7 @@ class SearchIndex
     }
 
     /**
-     * Returns the DataObjectSchema instance
+     * Returns the DataObjectSchema instance.
      *
      * @return DataObjectSchema
      */
@@ -121,19 +122,21 @@ class SearchIndex
     }
 
     /**
-     * Sets the index records
+     * Sets the index records.
      *
      * @param array $records
+     *
      * @return SearchIndex
      */
     public function setRecords(array $records): SearchIndex
     {
         $this->records = $records;
+
         return $this;
     }
 
     /**
-     * Returns the index records
+     * Returns the index records.
      *
      * @return array
      */
@@ -143,17 +146,16 @@ class SearchIndex
     }
 
     /**
-     * Creates the search index using the passed mappings and settings
+     * Creates the search index using the passed mappings and settings.
      *
      * @param array $mappings
      * @param array $settings
-     * @return void
      */
-    public function createIndex($mappings = [], $settings = [])
+    public function createIndex(array $mappings = [], array $settings = [])
     {
         $payload = [
-            "settings" => $settings,
-            "mappings" => [
+            'settings' => $settings,
+            'mappings' => [
                 $this->name => [
                     'properties' => $mappings,
                 ],
@@ -169,13 +171,14 @@ class SearchIndex
     }
 
     /**
-     * Deletes and recreates the index
+     * Deletes and recreates the index.
      *
      * @param array $mappings
      * @param array $settings
+     *
      * @return SearchIndex
      */
-    public function resetIndex($mappings = [], $settings = []): SearchIndex
+    public function resetIndex(array $mappings = [], array $settings = []): SearchIndex
     {
         $this->deleteIndex();
         $this->createIndex($mappings, $settings);
@@ -184,11 +187,9 @@ class SearchIndex
     }
 
     /**
-     * Delete the index through the API client
-     *
-     * @return void
+     * Delete the index through the API client.
      */
-    public function deleteIndex() : bool
+    public function deleteIndex(): bool
     {
         try {
             $client = new SearchIndexClient(
@@ -197,7 +198,7 @@ class SearchIndex
                 ''
             );
             $client->sendRequest();
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             //index does not exists, return true anyway
             return true;
         }
@@ -206,8 +207,8 @@ class SearchIndex
     }
 
     /**
-     * Updates the index data through the API client
-     * 
+     * Updates the index data through the API client.
+     *
      * Second argument is an associative array of filters
      * ClassName => [
      *     'filter_column' => 'filter_value'
@@ -215,6 +216,7 @@ class SearchIndex
      * ];
      *
      * @param array $filters
+     *
      * @return SearchIndexClient
      */
     public function index(array $filters = []): SearchIndexClient
@@ -224,56 +226,58 @@ class SearchIndex
             sprintf('/%s/_doc/_bulk?pretty', $this->name),
             (new PrimitiveDataObjectFactory($this, $filters))->getJSON()
         );
+
         return $client->sendRequest();
     }
 
     /**
-     * Adds a DataObject to the index
+     * Adds a DataObject to the index.
      *
      * @param DataObject $record
-     * @return void
      */
     public function indexRecord(DataObject $record)
     {
         if ($this->isIndexableClass($record)) {
             $transformer = new PrimitiveDataObject($record, $this->getSchema());
             $data = $transformer->getData();
-    
+
             $client = new SearchIndexClient(
                 'PUT',
                 sprintf('/%s/%s/%s', $this->name, $this->type, $record->ID),
                 json_encode($data)."\n"
             );
+
             return $client->sendRequest();
         }
     }
 
     /**
-     * Removes a DataObject from the index
+     * Removes a DataObject from the index.
      *
      * @param DataObject $record
-     * @return void
      */
     public function removeRecord(DataObject $record)
     {
-        if($this->isIndexableClass($record)) {
+        if ($this->isIndexableClass($record)) {
             try {
                 $client = new SearchIndexClient(
                     'DELETE',
                     sprintf('/%s/%s/%s', $this->name, $this->type, $record->ID),
                     ''
                 );
+
                 return $client->sendRequest();
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 return;
             }
         }
     }
 
     /**
-     * Checks if a passed DataObject can be added to the index
+     * Checks if a passed DataObject can be added to the index.
      *
      * @param DataObject $record
+     *
      * @return boolean
      */
     protected function isIndexableClass(DataObject $record): bool
@@ -283,6 +287,7 @@ class SearchIndex
                 return true;
             }
         }
+
         return false;
     }
 }
