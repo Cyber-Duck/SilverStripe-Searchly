@@ -156,7 +156,7 @@ class SearchIndex
         $payload = [
             'settings' => $settings,
             'mappings' => [
-                $this->name => [
+                $this->type => [
                     'properties' => $mappings,
                 ],
             ],
