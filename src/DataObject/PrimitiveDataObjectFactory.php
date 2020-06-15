@@ -80,7 +80,7 @@ class PrimitiveDataObjectFactory
                 'index' => [
                     '_index' => $this->index->getName(),
                     '_type' => $this->index->getType(),
-                    '_id' => $record->ID,
+                    '_id' => $record->ID . $record->ClassName,
                 ],
             ];
             $data[] = json_encode($settings)."\n".json_encode($record);
