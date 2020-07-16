@@ -7,6 +7,8 @@ use SilverStripe\ORM\DataObjectSchema;
 use SilverStripe\Core\Injector\Injector;
 use CyberDuck\Searchly\DataObject\PrimitiveDataObject;
 use CyberDuck\Searchly\DataObject\PrimitiveDataObjectFactory;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Config\Configurable;
 
 /**
  * Object representation of a Elastic Search index.
@@ -23,6 +25,8 @@ use CyberDuck\Searchly\DataObject\PrimitiveDataObjectFactory;
  */
 class SearchIndex
 {
+    use Configurable;
+
     /**
      * Search index name.
      *
@@ -119,6 +123,33 @@ class SearchIndex
     public function getSchema(): DataObjectSchema
     {
         return $this->schema;
+    }
+
+    /**
+     * Returns a UUID for a record
+     *
+     * @param $record
+     *
+     * @return string
+     */
+    public function getRecordID($record): string
+    {
+        $parts = [
+            $record->ClassName,
+            $record->ID
+        ];
+
+        $id = implode("-", $parts);
+
+        $config = $this->config();
+
+        if($config->get('id_hash_enabled')) {
+            $algo = $this->config()->get('id_hash_algo');
+            $length = $this->config()->get('id_hash_length');
+            $id = substr(hash($algo, $id), 0, $length);
+        }
+
+        return $id;
     }
 
     /**
@@ -243,7 +274,7 @@ class SearchIndex
 
             $client = new SearchIndexClient(
                 'PUT',
-                sprintf('/%s/%s/%s', $this->name, $this->type, $record->ID),
+                sprintf('/%s/%s/%s', $this->name, $this->type, $this->getRecordID($record)),
                 json_encode($data)."\n"
             );
 
@@ -262,7 +293,7 @@ class SearchIndex
             try {
                 $client = new SearchIndexClient(
                     'DELETE',
-                    sprintf('/%s/%s/%s', $this->name, $this->type, $record->ID),
+                    sprintf('/%s/%s/%s', $this->name, $this->type, $this->getRecordID($record)),
                     ''
                 );
 
