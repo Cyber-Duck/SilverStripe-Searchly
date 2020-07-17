@@ -179,8 +179,8 @@ class PrimitiveDataObject
     protected function hasLink(): bool
     {
         return property_exists($this->source, 'Link')
-        || method_exists($this->source, 'Link')
-        || method_exists($this->source, 'getLink');
+            || $this->source->hasMethod('Link')
+            || $this->source->hasMethod('getLink');
     }
 
     /**
@@ -193,15 +193,15 @@ class PrimitiveDataObject
     protected function getLink()
     {
         if ($this->source instanceof SiteTree) {
-            return DataObject::get_by_id(SiteTree::class, $this->source->ID)->AbsoluteLink();
+            return $this->source->AbsoluteLink();
         }
-        if ($this->source instanceof File) {
-            return DataObject::get_by_id(File::class, $this->source->ID)->AbsoluteLink();
+        if ($this->source instanceof File and $this->source->exists()) {
+            return $this->source->AbsoluteLink();
         }
-        if (method_exists('Link', $this->source)) {
+        if ($this->source->hasMethod('Link')) {
             return Director::absoluteURL($this->source->Link());
         }
-        if (method_exists('getLink', $this->source)) {
+        if ($this->source->hasMethod('getLink')) {
             return Director::absoluteURL($this->source->getLink());
         }
 
