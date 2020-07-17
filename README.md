@@ -12,6 +12,7 @@ Author: [Andrew Mc Cormack](https://github.com/Andrew-Mc-Cormack)
 __For SilverStripe 4.*__
 
 * [Installation](#installation)
+* [Configuration](#configuration)
 * [Setting Your Elastic Search Endpoint](#setting-your-elastic-search-endpoint)
 * [Setting DataObject Indexable Fields and Relations](#setting-dataobject-indexable-fields-and-relations)
 * [Performing Actions on a Search Index](#performing-actions-on-a-search-index)
@@ -37,6 +38,11 @@ Add the following to your composer.json file and run /dev/build?flush=all
     }
 }
 ```
+
+## Configuration
+
+Refer to `_config/searchly.yml` for configuration options.
+
 
 ## Setting Your Elastic Search Endpoint
 

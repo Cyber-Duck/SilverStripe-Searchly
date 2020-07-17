@@ -22,7 +22,9 @@
         "issues": "https://github.com/cyber-duck/silverstripe-searchly"
     },
     "require": {
-        "guzzlehttp/guzzle": "~6"
+        "php": ">=7.0.0",
+        "guzzlehttp/guzzle": "~6",
+        "silverstripe/framework": "^4"
     },
     "autoload": {
         "classmap": [
