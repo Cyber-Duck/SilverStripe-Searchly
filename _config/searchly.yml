@@ -1,0 +1,8 @@
+---
+name: silverstripe-searchly
+---
+
+CyberDuck\Searchly\Index\SearchIndex:
+  id_hash_enabled: true
+  id_hash_algo: 'md5'
+  id_hash_length: 12
