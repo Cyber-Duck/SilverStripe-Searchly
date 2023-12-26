@@ -18,6 +18,13 @@ namespace CyberDuck\Searchly\Index;
 class SearchQuery
 {
     /**
+     * Settings dictionary.
+     *
+     * @var array
+     */
+    protected $config = [];
+
+    /**
      * Query text string.
      *
      * @var string
