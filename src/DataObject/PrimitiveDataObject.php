@@ -56,6 +56,13 @@ class PrimitiveDataObject
     protected $data;
 
     /**
+     * Ignores these classes when building the search schema.
+     *
+     * @var array
+     */
+    protected $ignoreClasses = [];
+
+    /**
      * Ignores these relations when building the search schema.
      *
      * @var array

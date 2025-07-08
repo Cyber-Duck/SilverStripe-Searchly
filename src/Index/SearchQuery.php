@@ -30,6 +30,13 @@ class SearchQuery
      * @var string
      */
     protected $index;
+    
+    /**
+     * Query config
+     *
+     * @var array
+     */
+    protected $config = [];
 
     /**
      * Query result limit.
